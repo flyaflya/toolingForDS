@@ -8,6 +8,7 @@
    
   <link rel="stylesheet" href="/css/franklin.css">
 <link rel="stylesheet" href="/css/poole_hyde.css">
+<link rel="stylesheet" href="/css/custom.css">
 <!-- style adjustments -->
 <style>
   html {font-size: 17px;}
@@ -21,20 +22,22 @@
 </style>
 <link rel="icon" href="/assets/favicon.png">
 
-   <title>More goodies</title>  
+   <title>Log Density</title>  
 </head>
 <body>
 <div class="sidebar">
   <div class="container sidebar-sticky">
     <div class="sidebar-about">
-      <h1><a href="/">Hyde</a></h1>
-      <p class="lead">A two-column theme.</p>
+      <br>
+      <img src="/assets/oxInBarn.jpg" style="width: 120px; height: auto; display: inline">
+      <h1><a href="/">Tooling for Data Storytellers</a></h1>
+      <p class="lead">Unifying narrative, math, and code.</p>
     </div>
     <nav class="sidebar-nav">
       <a class="sidebar-nav-item " href="/">Home</a>
-      <a class="sidebar-nav-item " href="/menu1/">Code blocks</a>
-      <a class="sidebar-nav-item active" href="/menu2/">More goodies</a>
-      <a class="sidebar-nav-item " href="/menu3/">Tags</a>
+      <a class="sidebar-nav-item " href="/menu1/">The Vision</a>
+      <a class="sidebar-nav-item active" href="/menu2/">Log Density</a>
+      <a class="sidebar-nav-item " href="/menu3/">Filler</a>
     </nav>
     <p>&copy; Adam J. Fleischhacker.</p>
   </div>
@@ -42,7 +45,7 @@
 <div class="content container">
 
 <!-- Content appended here -->
-<div class="franklin-content"><h1 id="more_goodies"><a href="#more_goodies" class="header-anchor">More goodies</a></h1>
+<div class="franklin-content"><h1 id="log_density"><a href="#log_density" class="header-anchor">Log density</a></h1>
 <div class="franklin-toc"><ol><li><a href="#more_markdown_support">More markdown support</a></li><li><a href="#a_bit_more_highlighting">A bit more highlighting</a></li><li><a href="#more_customisation">More customisation</a><ol><li><a href="#custom_hfun">Custom &quot;hfun&quot;</a></li><li><a href="#custom_lx">Custom &quot;lx&quot;</a></li></ol></li></ol></div>
 <h2 id="more_markdown_support"><a href="#more_markdown_support" class="header-anchor">More markdown support</a></h2>
 <p>The Julia Markdown parser in Julia&#39;s stdlib is not exactly complete and Franklin strives to bring useful extensions that are either defined in standard specs such as Common Mark or that just seem like useful extensions.</p>
@@ -103,7 +106,7 @@ end</code></pre>
   var &#61; vname&#91;1&#93;
   return pagevar&#40;&quot;menu1&quot;, var&#41;
 end</code></pre>
-<p>Which you can use like this <code>&#123;&#123;m1fill title&#125;&#125;</code>: <strong>Franklin Example</strong>. Of course  in this specific case you could also have used <code>&#123;&#123;fill title menu1&#125;&#125;</code>: <strong>Code blocks</strong>.</p>
+<p>Which you can use like this <code>&#123;&#123;m1fill title&#125;&#125;</code>: <strong>Introduction to Tooling for Data Storytellers</strong>. Of course  in this specific case you could also have used <code>&#123;&#123;fill title menu1&#125;&#125;</code>: <strong>The Vision</strong>.</p>
 <p>Of course these examples are not very useful, in practice you might want to use it to generate actual HTML in a specific way using Julia code. For instance you can use it to customise how <a href="/menu3/#customising_tag_pages">tag pages look like</a>.</p>
 <p>A nice example of what you can do is in the <a href="https://juliasymbolics.github.io/SymbolicUtils.jl/api/">SymbolicUtils.jl manual</a> where they use a <code>hfun_</code> to generate HTML encapsulating the content of code docstrings, in a way doing something similar to what Documenter does. See <a href="https://github.com/JuliaSymbolics/SymbolicUtils.jl/blob/website/utils.jl">how they defined it</a>.</p>
 <p><strong>Note</strong>: the  output <strong>will not</strong> be reprocessed by Franklin, if you want to generate markdown which should be processed by Franklin, then use <code>return fd2html&#40;markdown, internal&#61;true&#41;</code> at the end.</p>
