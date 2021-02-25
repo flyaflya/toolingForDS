@@ -1,3 +1,21 @@
+@def title = "Pluto Prototype"
+@def hascode = true
+@def rss = "A short description of the page which would serve as **blurb** in a `RSS` feed; you can use basic markdown here but the whole description string must be a single line (not a multiline string). Like this one for instance. Keep in mind that styling is minimal in RSS so for instance don't expect maths or fancy styling to work; images should be ok though: ![](https://upload.wikimedia.org/wikipedia/en/b/b0/Rick_and_Morty_characters.jpg)"
+@def rss_title = "Pluto Prototype"
+@def rss_pubdate = Date(2019, 5, 1)
+@def tags = ["syntax", "code", "image"]
+
+# Pluto Prototype
+
+\toc
+
+The above is an h1.
+
+The below is h2.
+
+## Code from the HTML file
+
+~~~
 <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -5,11 +23,10 @@
                 <title>⚡ Pluto.jl ⚡</title>
                 <meta charset="utf-8" />
 
-                <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonsp/Pluto.jl@0.12.20/frontend/editor.css" type="text/css" />
-                <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonsp/Pluto.jl@0.12.20/frontend/treeview.css" type="text/css" />
-                <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonsp/Pluto.jl@0.12.20/frontend/hide-ui.css" type="text/css" />
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonsp/Pluto.jl@0.12.21/frontend/treeview.css" type="text/css" />
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonsp/Pluto.jl@0.12.21/frontend/hide-ui.css" type="text/css" />
                 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.58.1/lib/codemirror.min.css" type="text/css" />
-
+                <link rel="stylesheet" href="/libs/highlight/github.min.css"\>
                 <style id="MJX-SVG-styles">
 mjx-container[jax="SVG"] {
   direction: ltr;
@@ -149,10 +166,11 @@ foreignObject[data-mjx-xml] {
 </style>
             </head>
             <body>
-                <main><preamble><button class="runallchanged" title="Save and run all changed cells"><span></span></button></preamble><pluto-notebook id="ca1d6bc0-753e-11eb-3fac-0d40e751386f"><pluto-cell class="code_folded " id="b673ef20-7540-11eb-20c8-2bca83428010"><pluto-shoulder draggable="true" title="Drag to move cell"><button class="foldcode" title="Show/hide code"><span></span></button></pluto-shoulder><pluto-trafficlight></pluto-trafficlight><button class="add_cell before" title="Add cell"><span></span></button><pluto-output class="rich_output " mime="text/html"><assignee></assignee><div><div class="markdown"><h1>This is a heading for testing deploying Pluto</h1>
+                <main><preamble><button class="runallchanged" title="Save and run all changed cells"><span></span></button></preamble><pluto-notebook id="7c5ff370-76c5-11eb-2d51-0bc559b43e4e"><pluto-cell class="code_folded " id="b673ef20-7540-11eb-20c8-2bca83428010"><pluto-shoulder draggable="true" title="Drag to move cell"><button class="foldcode" title="Show/hide code"><span></span></button></pluto-shoulder><pluto-trafficlight></pluto-trafficlight><button class="add_cell before" title="Add cell"><span></span></button><pluto-output class="rich_output " mime="text/html"><assignee></assignee><div><div class="markdown"><h2>This is a heading for testing deploying Pluto</h2>
 <p>Can I then write text and continue.  I wodner</p>
-</div></div></pluto-output><pluto-runarea><button class="runcell" title="Run"><span></span></button><span class="runtime">1.4&nbsp;ms</span></pluto-runarea><button class="add_cell after" title="Add cell"><span></span></button></pluto-cell></pluto-notebook><dropruler></dropruler></main>
+</div></div></pluto-output><pluto-runarea><button class="runcell" title="Run"><span></span></button><span class="runtime">24.8&nbsp;μs</span></pluto-runarea><button class="add_cell after" title="Add cell"><span></span></button></pluto-cell></pluto-notebook><dropruler></dropruler></main>
                 <svg id="MJX-SVG-global-cache" style="display: none;"><defs></defs></svg>
             </body>
             </html>
         
+~~~
