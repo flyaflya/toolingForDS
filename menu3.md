@@ -1,6 +1,6 @@
-@def title = "Menu 3"
+@def title = "Metropolis Sampling"
 
-# Working with tags
+# Metropolis Sampling
 
 **Example**:
 

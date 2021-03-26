@@ -5,6 +5,7 @@ videos = Dict(
               "course-intro" => "Hs5abYdC7EQ",
               "installation" => "Hs5abYdC7EQ",
               "feynman"  => "EYPapE-3FRw",
+              "integrals" => "rfG8ce4nNh0",
               "cute-one"     => "Hs5abYdC7EQ",
               "images-intro" => "Hs5abYdC7EQ",
               "convolution"  => "Hs5abYdC7EQ",

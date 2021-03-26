@@ -1,6 +1,11 @@
 [deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+DataFramesMeta = "1313f7d8-7da2-5740-9ea0-a2ca25f37964"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+Format = "1fa38f19-a742-5d3f-a2b9-30dd87b9d5f8"
 Franklin = "713c75ef-9fc9-4b05-94a9-213340da978e"
+Gadfly = "c91e804a-d5a3-530f-b6f0-dfbca275c004"
 InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
