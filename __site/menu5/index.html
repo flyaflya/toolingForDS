@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+   <link rel="stylesheet" href="/libs/katex/katex.min.css">
+     
+   <link rel="stylesheet" href="/libs/highlight/github.min.css">
+   
+  <link rel="stylesheet" href="/css/franklin.css">
+<link rel="stylesheet" href="/css/poole_hyde.css">
+<link rel="stylesheet" href="/css/custom.css">
+<!-- style adjustments -->
+<style>
+  html {font-size: 17px;}
+  .franklin-content {position: relative; padding-left: 8%; padding-right: 5%; line-height: 1.35em;}
+  @media (min-width: 940px) {
+    .franklin-content {width: 100%; margin-left: auto; margin-right: auto;}
+  }
+  @media (max-width: 768px) {
+    .franklin-content {padding-left: 6%; padding-right: 6%;}
+  }
+</style>
+<link rel="icon" href="/assets/favicon.png">
+
+   <title>Visualization with Luxor</title>  
+</head>
+<body>
+<div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <br>
+      <img src="/assets/oxInBarn.jpg" style="width: 120px; height: auto; display: block; margin-left: auto; margin-right: auto">
+      <h1><a href="/">Tooling for Data Storytellers</a></h1>
+      <p class="lead">Unifying narrative, math, and code.</p>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-nav-item " href="/">Home</a>
+      <a class="sidebar-nav-item " href="/menu1/">The Vision</a>
+      <a class="sidebar-nav-item " href="/jointDist/">Joint Distributions</a>
+      <a class="sidebar-nav-item " href="/menu3/">Metropolis Sampling</a>
+      <a class="sidebar-nav-item " href="/menu4/">HTML Page Insert</a>
+      <a class="sidebar-nav-item active" href="/menu5/">Visualization with Luxor</a>
+    </nav>
+    <p>&copy; Adam J. Fleischhacker.</p>
+  </div>
+</div>
+<div class="content container">
+
+<!-- Content appended here -->
+<div class="franklin-content"><h1 id="visualization_with_luxor"><a href="#visualization_with_luxor" class="header-anchor">Visualization with Luxor</a></h1>
+<p>For simplicity of comprehension, we want to move away from named probability distributions and use more intuitive parameterizations of our uncertainty.  There are three dimensions to intuitive parameterizations:</p>
+<ol>
+<li><p><strong>Discrete</strong> or <strong>Continuous</strong></p>
+</li>
+<li><p><strong>Support</strong> - this should document upper and lower Bounds - For continuous variables the lower bound is either \(-\infty\) or a real number; the upper bound is either a real number of \(+\infty\).  For discrete variables, we restrict ourselves to a finite set of numbers or categories that are either numerical, ordinal, or unordered.</p>
+</li>
+</ol>
+<p>Here is a simple visualization using Luxor.</p>
+<pre><code class="language-julia">a &#61; 5
+println&#40;a&#41;</code></pre>
+<p>let&#39;s see if the </p>
+<div class="page-foot">
+  <div class="copyright">
+    &copy; Adam J. Fleischhacker. Last modified: March 23, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
+  </div>
+</div>
+</div><!-- CONTENT ENDS HERE -->
+    </div>  <!-- div: content container -->
+    
+        <script src="/libs/katex/katex.min.js"></script>
+<script src="/libs/katex/auto-render.min.js"></script>
+<script>renderMathInElement(document.body)</script>
+
+    
+    
+        <script src="/libs/highlight/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();hljs.configure({tabReplace: '    '});</script>
+
+    
+  </body>
+</html>
