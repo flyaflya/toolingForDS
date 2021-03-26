@@ -39,6 +39,17 @@ body {
     padding: 1.5em;
     border-radius: 0;
 }
+.plaintext {
+    background: #ffffff;
+}
+.plaintext.hljs {
+    border-style: none;
+}
+.plaintext::before {
+    content: "##  ";
+    color: rgb(146, 137, 137);
+    font-weight: bold;
+  }
 pre.code-output {
     background: #6b8e2340;
     padding-left: 0.5em;
