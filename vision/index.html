@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+   <link rel="stylesheet" href="/libs/highlight/github.min.css">
+   
+  <link rel="stylesheet" href="/css/franklin.css">
+<link rel="stylesheet" href="/css/poole_hyde.css">
+<link rel="stylesheet" href="/css/custom.css">
+<!-- style adjustments -->
+<style>
+  html {font-size: 17px;}
+  .franklin-content {position: relative; padding-left: 8%; padding-right: 5%; line-height: 1.35em;}
+  @media (min-width: 940px) {
+    .franklin-content {width: 100%; margin-left: auto; margin-right: auto;}
+  }
+  @media (max-width: 768px) {
+    .franklin-content {padding-left: 6%; padding-right: 6%;}
+  }
+</style>
+<link rel="icon" href="/assets/favicon.png">
+
+   <title>The Vision</title>  
+</head>
+<body>
+<div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <br>
+      <img src="/assets/oxInBarn.jpg" style="width: 120px; height: auto; display: block; margin-left: auto; margin-right: auto">
+      <h1><a href="/">Tooling for Data Storytellers</a></h1>
+      <p class="lead">Unifying narrative, math, and code.</p>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-nav-item " href="/">Home</a>
+      <a class="sidebar-nav-item active" href="/vision/">The Vision</a>
+      <a class="sidebar-nav-item " href="/luxorViz/">Visualization with Luxor</a>
+      <!-- <a class="sidebar-nav-item {{ispage jointDist/*}}active{{end}}" href="/jointDist/">Joint Distributions</a>
+      <a class="sidebar-nav-item {{ispage menu3/*}}active{{end}}" href="/menu3/">Metropolis Sampling</a>
+      <a class="sidebar-nav-item {{ispage menu4/*}}active{{end}}" href="/menu4/">HTML Page Insert</a> -->
+    </nav>
+    <p>&copy; Adam J. Fleischhacker.</p>
+  </div>
+</div>
+<div class="content container">
+
+<!-- Content appended here -->
+<div class="franklin-content"><h1 id="the_vision"><a href="#the_vision" class="header-anchor">The Vision</a></h1>
+<p>The data storyteller changes the real-world by cycling through four inter-dependent stages of effortas shown in the figure below:</p>
+<img src="/assets/vision/code/stagesOfADataStory.jpg" alt="">
+<p>In the <strong>modelling stage</strong>, the storyteller faithfully represents the real-world as a mathematical construct.  Since there are infinite mathematical constructs, good storytellers use the nature of observed data, the knowledge of experts, and their own beliefs to narrow down the scope of plausible models that might serve as abstractions of the real-world.  For a data storyteller, black box models that might make successful predictions, like neural networks, are simply not good enough; neural networks are tools of automation, not motivation.  Hence, storyteller models must be transparent, interpretable, and sufficiently intuitive so that the storyteller&#39;s audience is compelled to believe model results and take action based on model insights.</p>
+<p>The <strong>conditioning stage</strong> is where data is used to inform the model; to reallocate plausiblity among competing models and their parameters; and to ensure that models/parameters which are more consistent with the data are given more credibility.  Not all models, even if properly specified mathematically, will yield useful results during this stage.  Most updating of real-world models in light of data is intractable; hence, computational approximations are all we can hope for.  If the algorthms are not fast-enough or the approximations not faithful to their mathematical counterparts, then the results of this stage are useless.  Hence, a good data storyteller seeks not only a faithful model of the real-world, but a model likely to yield useful results when combined with data.</p>
+<p>During the <strong>validity stage</strong>, storytellers collect evidence to see whether the specified model as well as the computational implementation of the model and conditioning process are to be trusted or not.  Reasons for distrust include computational issues like an algorithm not finding feasible solutions or converging solutions within a practically convenient time period.  Additionally, modelling issues frequently get illuminated during this stage where all considered models prove to be very poor reflections of any real-world data generating process.</p>
+<p>The <strong>communication stage</strong> is where many data models are left to die.  When decision makers and stakeholders fail to be motivated to action, then any effort spent modelling is wasted.  The key here is for a storyteller&#39;s audience to see their input and knowledge reflected in the storyteller&#39;s model and data, to understand how the model functions and why its insights are valid, and to see/believe the resulting improvement in outcomes of interest by adopting the storyteller&#39;s recommendations.  Data and model visualization, as opposed to tables of numbers or p-values, are the key tools for ensuring successful communications.</p>
+<h2 id="my_assumptions_about_implementing_the_vision"><a href="#my_assumptions_about_implementing_the_vision" class="header-anchor">My Assumptions About Implementing the Vision</a></h2>
+<ul>
+<li><p>Humans like stories; stories are the primary means by which we learn to cooperate in large numbers. </p>
+</li>
+<li><p>Humans prefer visualizations to text and to tables of numbers.</p>
+</li>
+<li><p>A few strategically-simple composable components are more useful than an abundance of non-integrated complex components.</p>
+<ul>
+<li><p>Corollary:  Named probability distributions should be replaced by quantile estimates.  Uncertainty is more easily expressed as a 90&#37; confidence interval, support, and a median rather than some named probability distribution.</p>
+</li>
+</ul>
+</li>
+<li><p>Julia packages that do not play well with others will not be used.  The ecosystem is relatively new, so this happens quite often.</p>
+</li>
+<li><p>Packages that are written in pure Julia are preferred to avoid cross-platform integration headaches as is faced when using R or Python for machine learning or Stan for probabilistic programming.</p>
+</li>
+<li><p>Probabilistic programming is the only way to create interpretable models - i.e. models that motivate by telling a story.  Black box models &#40;e.g. neural networks&#41; should be used sparingly and mostly for automation tasks.</p>
+</li>
+<li><p>Of all coding languages that have intuitive and readable syntax, Julia is by far the fastest at executing human-readable code.  Afterall, our goal is not to provide tools to programmers, rather we want to provide tools to data storytellers who value readable code, but need the built-in speed to condition on data in reasonable amounts of time.</p>
+</li>
+</ul>
+<div class="page-foot">
+  <div class="copyright">
+    &copy; Adam J. Fleischhacker. Last modified: April 08, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
+  </div>
+</div>
+</div><!-- CONTENT ENDS HERE -->
+    </div>  <!-- div: content container -->
+    
+    
+        <script src="/libs/highlight/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();hljs.configure({tabReplace: '    '});</script>
+
+    
+  </body>
+</html>

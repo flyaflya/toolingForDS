@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+   <link rel="stylesheet" href="/libs/highlight/github.min.css">
+   
+  <link rel="stylesheet" href="/css/franklin.css">
+<link rel="stylesheet" href="/css/poole_hyde.css">
+<link rel="stylesheet" href="/css/custom.css">
+<!-- style adjustments -->
+<style>
+  html {font-size: 17px;}
+  .franklin-content {position: relative; padding-left: 8%; padding-right: 5%; line-height: 1.35em;}
+  @media (min-width: 940px) {
+    .franklin-content {width: 100%; margin-left: auto; margin-right: auto;}
+  }
+  @media (max-width: 768px) {
+    .franklin-content {padding-left: 6%; padding-right: 6%;}
+  }
+</style>
+<link rel="icon" href="/assets/favicon.png">
+
+   <title>Visualization with Luxor</title>  
+</head>
+<body>
+<div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <br>
+      <img src="/assets/oxInBarn.jpg" style="width: 120px; height: auto; display: block; margin-left: auto; margin-right: auto">
+      <h1><a href="/">Tooling for Data Storytellers</a></h1>
+      <p class="lead">Unifying narrative, math, and code.</p>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-nav-item " href="/">Home</a>
+      <a class="sidebar-nav-item " href="/vision/">The Vision</a>
+      <a class="sidebar-nav-item active" href="/luxorViz/">Visualization with Luxor</a>
+      <!-- <a class="sidebar-nav-item {{ispage jointDist/*}}active{{end}}" href="/jointDist/">Joint Distributions</a>
+      <a class="sidebar-nav-item {{ispage menu3/*}}active{{end}}" href="/menu3/">Metropolis Sampling</a>
+      <a class="sidebar-nav-item {{ispage menu4/*}}active{{end}}" href="/menu4/">HTML Page Insert</a> -->
+    </nav>
+    <p>&copy; Adam J. Fleischhacker.</p>
+  </div>
+</div>
+<div class="content container">
+
+<!-- Content appended here -->
+<div class="franklin-content"><h1 id="visualization_with_luxor"><a href="#visualization_with_luxor" class="header-anchor">Visualization with Luxor</a></h1>
+<p>If we are going to create tools for data storytellers that impact the real-world, we better get good at creating visualizations to convey our models and insights.  Human-beings evolved a keen sense of vision that was used to detect predators, pick ripening fruit, and investigate environmental anomolies.  As such, conveying ideas and insights using visual messaging will be well-received by our audiences and we will heavily rely on our ability to make persuasive visuals.  In this chapter we learn to make visualizations and animations of basic shapes and text using the <code>Luxor</code> package.  In later chapters, we will use the <code>gadfly</code> package for plotting data.</p>
+<p>Creating visuals is a great way to learn a programming language.  Using an iterative visual construction process provides instant feedback on whether our code succeeds or fails.  With this quick feedback loop, we will learn overcome the quirks and learn to embrace the strengths of the Julia language.  So for our first steps in Julia, we introduce the programming language while leveraging the <code>Luxor.jl</code> package.</p>
+<h2 id="recommended_setup"><a href="#recommended_setup" class="header-anchor">Recommended Setup</a></h2>
+<p>For your first steps getting a Julia environment set up.  Perform the following steps:</p>
+<ol>
+<li><p>Download and Install Julia from https://julialang.org/</p>
+</li>
+<li><p>Confirm the app works on your system.</p>
+</li>
+<li><p>Download and Install Visual Studio Code from https://code.visualstudio.com/</p>
+</li>
+<li><p>Install the Julia extension for VS Code:</p>
+<ul>
+<li><p>Start or open Visual Studio Code.</p>
+</li>
+<li><p>Select View and then click Extensions to open Extension View.</p>
+</li>
+<li><p>Enter the term julia in the marketplace search box. Click the green Install button to download the extension.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="customizations"><a href="#customizations" class="header-anchor">Customizations</a></h3>
+<p>While customizations are optional, I recommend exploring <code>View -&gt; Command Pallette</code> from the menu bar and searching for <code>Preferences: Open User Settings</code>.  From there navigate to <code>User -&gt; Text Editor</code> and scroll to find the <code>Word Wrap</code> settings.  Choose <code>Word Wrap</code> to be <code>on</code> and <code>Wrapping Indent</code> to be <code>deep</code>.  You can continue to scroll through the settings to see if there is anything else you might want to change.  I would also get rid of the <code>minimap</code> by toggling <code>Show Minimap</code> to off under the <code>View</code> menu.</p>
+<h2 id="welcome_to_julia_and_luzor"><a href="#welcome_to_julia_and_luzor" class="header-anchor">Welcome to Julia And Luzor</a></h2>
+<p>The below video will introduce the package manager in Julia.  We will use a surprisingly large amount of packages when using Julia as the language&#39;s founders believe in keeping base functionality to a minimum.</p>
+<iframe id="pkgMgr" width="100%" height="360"
+src="https://www.youtube.com/embed/vux8AUt2x8A"
+frameborder="0"
+allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+allowfullscreen></iframe>
+
+<p>Make sure to install the <code>Luxor</code> package and review <a href="http://juliagraphics.github.io/Luxor.jl/stable/">the documentation</a>.  You will then be able to understand and run the following code:</p>
+<pre><code class="language-julia">using Luxor
+
+@draw begin
+    setline&#40;34&#41;
+    sethue&#40;&quot;navyblue&quot;&#41;
+    cornerRadius &#61; 100
+    box&#40;O, 500, 400, cornerRadius, :stroke&#41;
+end</code></pre>
+
+<img src="/assets/luxorViz/code\output\introOut.png" alt="">
+<p>Very cool&#33;  You drew a rounded rectangle.  In this chapter, we are going to pretend the rounded rectangle is the top-view of a track on which a marble travels around.  There are four straight sections and four rounded corners.  We can calculate the perimeter of the track by knowing the non-rounded rectangle is 500 units wide by 400 units tall and that the rounded corners are made using circles of radius 100:</p>
+<pre><code class="language-julia">## track length calculation
+cornerRadius &#61; 100
+straightDistances &#61; 2*&#40;500 - cornerRadius&#41; &#43; 2 *&#40;400 - cornerRadius&#41;
+curvedDistance &#61; 2 * π * cornerRadius
+totalDist &#61; straightDistances &#43; curvedDistance</code></pre>
+<pre><code class="plaintext">2028.3185307179588</code></pre>
+<p>Now, if we want to show a marble on the track, say in the top-left corner, we calculate its position and add it to the drawing.</p>
+<pre><code class="language-julia">@draw begin
+    setline&#40;34&#41;
+    sethue&#40;&quot;navyblue&quot;&#41;
+    cornerRadius &#61; 100
+    box&#40;O, 500, 400, cornerRadius, :stroke&#41;
+    sethue&#40;&quot;darkorange&quot;&#41;
+    upperLeftCenterPoint &#61; Point&#40;-250&#43;cornerRadius,-200&#43;cornerRadius&#41;
+    upperLeft &#61; upperLeftCenterPoint &#43; Point&#40;-cornerRadius*cos&#40;π/4&#41;,-cornerRadius*cos&#40;π/4&#41;&#41;
+    circle&#40;upperLeft, 15, :fill&#41;
+end</code></pre>
+
+<img src="/assets/luxorViz/code\output\marbleOut.png" alt="">
+<p>Your next milestone is going to be to animate the orange marble to go around the blue track.  The below video will get you started in Julia using VS Code and animating visuals using the <code>Luxor</code> package.  Watch the video and then attempt the subsequent exercise.</p>
+<iframe id="luxorSpinner" width="100%" height="360"
+src="https://www.youtube.com/embed/izvJWkQIwA0"
+frameborder="0"
+allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+allowfullscreen></iframe>
+
+<h2 id="exercise"><a href="#exercise" class="header-anchor">Exercise</a></h2>
+<p>Animate the orange marble to go around the navy-blue marble track at a constant speed of 1000 units per second &#40;a little over two seconds per lap&#41;.  Using 20 frames per second, you will need 200 frames to show 10 seconds of the animation.  Upload both your code and a gif file of the animation.</p>
+<p>Create an additional animation, identical to the previous one, except for two things.  1&#41; Use the <code>easeoutquint</code> easing function to make the marble start at a fast speed and then slow down significantly, and 2&#41; place your name in a large font at the center of the track.  Upload just your gif file for this part.</p>
+<div class="page-foot">
+  <div class="copyright">
+    &copy; Adam J. Fleischhacker. Last modified: April 08, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
+  </div>
+</div>
+</div><!-- CONTENT ENDS HERE -->
+    </div>  <!-- div: content container -->
+    
+    
+        <script src="/libs/highlight/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();hljs.configure({tabReplace: '    '});</script>
+
+    
+  </body>
+</html>
