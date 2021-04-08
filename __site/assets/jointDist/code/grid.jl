@@ -1,7 +1,7 @@
 # This file was generated, do not modify it. # hide
-using DataFrames
-using Gadfly
-using Format
+using Random, Distributions
+
+
 
 N = 1000  ## sample using 1000 points
 

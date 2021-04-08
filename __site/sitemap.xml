@@ -2,26 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
-    <loc>https://tlienart.github.io/FranklinTemplates.jl/menu1\index.html</loc>
-    <lastmod>2021-02-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-</url>
-<url>
     <loc>https://tlienart.github.io/FranklinTemplates.jl/menu4\index.html</loc>
     <lastmod>2021-02-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
 </url>
 <url>
-    <loc>https://tlienart.github.io/FranklinTemplates.jl/menu5\index.html</loc>
-    <lastmod>2021-03-23</lastmod>
+    <loc>https://tlienart.github.io/FranklinTemplates.jl/index.html</loc>
+    <lastmod>2021-03-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
 </url>
 <url>
-    <loc>https://tlienart.github.io/FranklinTemplates.jl/index.html</loc>
-    <lastmod>2021-03-02</lastmod>
+    <loc>https://tlienart.github.io/FranklinTemplates.jl/vision\index.html</loc>
+    <lastmod>2021-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
 </url>
@@ -33,7 +27,13 @@
 </url>
 <url>
     <loc>https://tlienart.github.io/FranklinTemplates.jl/jointDist\index.html</loc>
-    <lastmod>2021-03-26</lastmod>
+    <lastmod>2021-04-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+</url>
+<url>
+    <loc>https://tlienart.github.io/FranklinTemplates.jl/luxorViz\index.html</loc>
+    <lastmod>2021-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
 </url>

@@ -238,7 +238,7 @@ I_est = 1 / N * summand
 
 #### plot kumaraswamy function
 function y_kuma(y::Real)
-    z = 2 * 8 * y / 10^5 * (1-y^2 / 10^10)^7
+    z = 2 * 8 * y / 10^5 * (1-y^2 / 10^10)^7 * 1/10^5
 end
 
 y_kuma(50000)
@@ -247,7 +247,7 @@ y_kuma(50000)
 plot(y_kuma, 0, 100000)
 
 ## estimate integral
-N=1000000
+N=1000
 summand = 0 ## initialize sum
 for y_j in range(0,100000,length = N)
     summand = summand + y_kuma(y_j)
@@ -285,6 +285,86 @@ gridDF.integrand = f.(gridDF.winningsMultiplier,gridDF.maxWinnings)
 plot(gridDF,
         x = :winningsMultiplier, 
         y = :maxWinnings,
-        layer(Geom.point, color = :integrand),
-        layer(Geom.contour, z =:integrand, levels = 5),
+        color = :integrand,
+        Scale.y_continuous(labels = x -> format(x, commas = true)))
+
+p = plot(gridDF,
+        x = :winningsMultiplier, 
+        y = :maxWinnings,
+        color = :integrand)
+#        Scale.y_continuous(labels = x -> format(x, commas = true)))
+img = SVG(joinpath(@OUTPUT, "gridColor.svg"), 4inch, 3inch)
+draw(img, p)
+
+using Statistics
+expectedWinnings = mean(gridDF.integrand)
+
+## graph density of spinner
+using Gadfly
+
+function π_X(x::Real)  ## type \pi and press <tab> to get π symbol
+    if x >= 0 && x <=1
+        6*x*(1-x)
+    else
+        0
+    end
+end
+
+# plot(f::Function, lower, upper, elements...; mapping...)
+plot(π_X,0,1)  ## works as expected
+
+
+function π_X(x::Real)
+    if x >= 0 && x <=1
+        6*x*(1-x)
+    else
+        x
+    end
+end
+
+
+
+# plot(f::Function, lower, upper, elements...; mapping...)
+plot(π_X,0,1)  ## works as expected
+plot(π_X,-1,2)  ## gives error
+
+
+using Distributions
+densFun = function(x::Real)
+    pdf(Beta(2,4),x)
+end
+plot(densFun,-1,2)
+
+using Pkg
+Pkg.status("Gadfly")
+
+
+## sample for 1000000 points
+for i in 1:10
+    N = 1000
+
+    gridDF2 = DataFrame(winningsMultiplier = rand(N),
+                        maxWinnings = 10^5 * rand(N))
+    ## add column to DataFrame
+    gridDF2.integrand = f.(gridDF2.winningsMultiplier,gridDF2.maxWinnings)
+    expectedWinnings = mean(gridDF2.integrand)
+    println(expectedWinnings)
+end
+
+
+##non-uniform sampling
+using Random, Distributions
+
+xSamplingDist = Beta(2,2)  ## winnings winningsMultiplier
+ySamplingDist = Beta(2,8)  ## maxWinnings 
+
+Random.seed!(123) # Setting the seed
+N = 1000  ## sample using 1000 points
+
+gridDF = DataFrame(winningsMultiplier = rand(N),
+                    maxWinnings = 10^5 * rand(N))
+
+plot(gridDF,
+        x = :winningsMultiplier, 
+        y = :maxWinnings,
         Scale.y_continuous(labels = x -> format(x, commas = true)))

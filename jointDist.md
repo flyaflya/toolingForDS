@@ -68,10 +68,10 @@ draw(img, p)
 
 We can see that the "higher friction zone" of the spinner leads to more outcomes near 0.5 than outcomes near 0 or 1.
 
-Additional, assume the probability density function for the day's maximum win amount is also known:
+Additionally, assume the probability density function for the day's maximum win amount is also known:
 
 $$
-\pi_Y(y) = 2 \times 8 \times \frac{y}{10^5} \times \left(1 - (\frac{y}{10^5})^2\right)^7  \textrm{  where } y \in (0,10^5)      
+\pi_Y(y) = 2 \times 8 \times \frac{y}{10^5} \times \left(1 - (\frac{y}{10^5})^2\right)^7 \times \frac{1}{10^5} \textrm{  where } y \in (0,10^5)      
 $$
 
 This is actually derived from a [Kumaraswamy distribution](https://en.wikipedia.org/wiki/Kumaraswamy_distribution), but let's ignore the obscure distribution name and just plot the density of $Y$:
@@ -79,8 +79,9 @@ This is actually derived from a [Kumaraswamy distribution](https://en.wikipedia.
 ```julia:densityMaxWin
 function π_Y(y::Real)  ## type \pi and press <tab> to get π symbol
     kumaRealization = y / 100000  ## substitute for simplicity
+    jacobian = 1 / 10^5 # jacobian for change of variable
     if kumaRealization >= 0 && kumaRealization <=1
-        2*8*kumaRealization*(1-kumaRealization^2)^7
+        2*8*kumaRealization*(1-kumaRealization^2)^7*jacobian
     else
         0
     end
@@ -113,15 +114,15 @@ $$
 
 where due to the independence of $X$ and $Y$, the density function for $\pi_\mathcal{Q}(q) = \pi_{X,Y}(x,y) = \pi_X(x) \times \pi_Y(y)$:
 $$
-\pi_{X,Y}(x,y) = 6x \times (1-x) \times 2 \times 8 \times \frac{y}{10^5} \times \left(1 - (\frac{y}{10^5})^2\right)^7\\
-\pi_{X,Y}(x,y) = \frac{3xy}{3125} \times (1-x) \times \left(1 - \frac{y^2}{10^{10}}\right)^7
+\pi_{X,Y}(x,y) = 6x \times (1-x) \times 2 \times 8 \times \frac{y}{10^5} \times \left(1 - (\frac{y}{10^5})^2\right)^7 \times \frac{1}{10^5}\\
+\pi_{X,Y}(x,y) = \frac{3xy}{3125 \times 10^5} \times (1-x) \times \left(1 - \frac{y^2}{10^{10}}\right)^7
 $$
 
 The function, $f$, that we are interested in is our winnings, $f(x,y) = x * y$ and our expectation of winnings:
 
 $$
-\mathbb{E}[f(x,y)] = \int_{0}^{100000}\int_{0}^{1} dxdy\, \frac{3xy}{3125} \times (1-x) \times \left(1 - \frac{y^2}{10^{10}}\right)^7\, xy\\
-\mathbb{E}[f(x,y)] = \int_{0}^{100000}\int_{0}^{1} dxdy\, \frac{3x^2y^2}{3125} \times (1-x) \times \left(1 - \frac{y^2}{10^{10}}\right)^7
+\mathbb{E}[f(x,y)] = \int_{0}^{100000}\int_{0}^{1} dxdy\, \frac{3xy \times (1-x)}{3125 \times 10^5}  \times \left(1 - \frac{y^2}{10^{10}}\right)^7\, xy \\
+\mathbb{E}[f(x,y)] = \int_{0}^{100000}\int_{0}^{1} dxdy\, \frac{3x^2y^2 \times (1-x)}{3125 \times 10^5} \times \left(1 - \frac{y^2}{10^{10}}\right)^7
 $$
 
 I do not know about you, but I see that integral and I do not want to attempt it analytically.  Isn't there an easier way? 
@@ -135,8 +136,10 @@ One easier way to do integrals is to use Monte Carlo integration.  Recall from c
 Defining $I = \mathbb{E}[f(x,y)]$, then we can approximate $I$ by a summation of $N$ points randomly chosen from sample space $Q$.  We randomly choose the points to avoid interactions that can occur between an evenly-spaced grid and the integrand that is being estimated (e.g. imagine estimating the value of $\sin(x)$ by taking these evenly-spaced sample points $x \in \{0,\pi,2\pi,\ldots\}$).  Sampling $(x_1,x_2,\ldots,x_N)$ where each $x_i \sim Uniform(0,1)$ and $(y_1,y_2,\ldots,y_N)$ where each $y_i \sim Uniform(0,10^5)$, yields the following approximation for $I$:
 
 $$
-\hat{I} = \frac{1}{N} \sum_{j=1}^{N} \frac{3x_j^2y_j^2}{3125} \times (1-x_j) \times \left(1 - \frac{y_j^2}{10^{10}}\right)^7
+\hat{I} = \frac{10^5}{N} \sum_{j=1}^{N} \frac{3x_j^2y_j^2}{3125 \times 10^5} \times (1-x_j) \times \left(1 - \frac{y_j^2}{10^{10}}\right)^7 
 $$
+
+(see [this article](http://math.uchicago.edu/~may/REU2017/REUPapers/Guilhoto.pdf) for the formula)
 
 In Julia, we can get a grid of points with the below code:
 
@@ -173,7 +176,7 @@ And we can then add information about evaluating the integrand of (6) or equival
 ```julia:gridColor
 ## add summand/integrand values as color and contour
 function f(x::Real,y::Real)
-    3*x^2*y^2 / 3125 * (1 - x) * (1 - y^2/10^10)^7
+    3*x^2*y^2 / (3125 * 10^5) * (1 - x) * (1 - y^2/10^10)^7
 end
 
 ## add column to DataFrame using above function
@@ -200,13 +203,13 @@ draw(img, p)
 
 \fig{gridColor.svg}
 
-From the above plot, we see that the largest contributors to $\hat{I}$ are in a sweetspot of winning multipliers near 60% - 70% and maximum winnings of around \$30,000 - \$40,000.  These are the points that most contribute to moving the estimate of expected winnings away from zero.  Points above \$50,000 in maximum winnings do not contribute as much because they are improbable events.  Additonally, the most probable of all the points, somewhere near 50% and \$20,000, is not the largest contributor to the expectation. So it is not the largest points in terms of probability or in terms of total winnings (upper-right hand corner) that contribute the most to our expectation, rather points somewhere in between those extremes  contribute the largest summands.  
+From the above plot, we see that the largest contributors to $\hat{I}$ are in a sweetspot of winning multipliers near 60% - 70% and maximum winnings of around \$30,000 - \$40,000.  These are the points that most contribute to moving the estimate of expected winnings away from zero.  Points above \$50,000 in maximum winnings do not contribute as much because they are improbable events.  Additonally, the most probable of all the points, somewhere near 50% and \$25,000, is not the largest contributor to the expectation. So it is not the largest points in terms of probability or in terms of total winnings (upper-right hand corner) that contribute the most to our expectation, rather points somewhere in between those extremes  contribute the largest summands.  
 
 In code, our estimate of expected winnings turns out to be:
 
 ```julia:estWin
 using Statistics
-expectedWinnings = mean(gridDF.integrand)
+expectedWinnings = 10^5 * mean(gridDF.integrand) # est of I
 ```
 
 \show{estWin}
@@ -220,13 +223,58 @@ show(gridDF) #hide
 
 \output{gridDF}
 
+### More Efficient Monte Carlo Integration
+
+    If the highest summands/integrands sway our expected estimates much more dramatically than all of the close-to-zero summands, then our estimation error could be reduced more efficiently if our estimation method spends more time sampling from high summand values and less time sampling at near-zero summands.  One way to accomplish this is to use non-uniform sampling of points; sample the far-from-zero summands more frequently and the close-to-zero summands less frequently.  In doing this, each point can no longer be weighted equally, but rather our estimate ([see here for more info on this forumla](https://cs.dartmouth.edu/wjarosz/publications/dissertation/appendixA.pdf)) gets adjusted by the probability density function of drawing the non-uniform sample, labelling the sampling probability density function $g_{X,Y}(x,y)$ gives:
+
+$$
+\hat{I} = \mathbb{E}_{X,Y}[f(x,y)] = \frac{1}{N} \sum_{j=1}^{N} \frac{\pi_{X,Y}(x,y) \times f(x,y)}{g_{X,Y}(x,y)}
+$$
+
+So instead of a uniform grid of points, I will get points in a smarter way.  I will sample the winnings multiplier using a $\textrm{Beta}(2,2)$ distribution and the maximum winnings by using a $\textrm{Beta}(2,8)$ distribution modified for support over $(0,10^5)$:
+
+```julia:grid
+using Random, Distributions
+
+
+
+N = 1000  ## sample using 1000 points
+
+gridDF = DataFrame(winningsMultiplier = rand(N),
+                    maxWinnings = 10^5 * rand(N))
+
+plot(gridDF,
+        x = :winningsMultiplier, 
+        y = :maxWinnings,
+        Scale.y_continuous(labels = x -> format(x, commas = true)))
+```
+
+
+
 ## The Metropolis Hastings Algorithm
 
-In the above example, we used Monte Carlo integration to calculate an integral that I was too analytically intimidated to attempt.  It gave us useful information, namely that expected winnings are in the neighborhood of \$15,000 give or take a few thousand dollars.  
+In the above example, we used Monte Carlo integration to calculate an integral that I was too intimidated by to attempt analytically.  It gave us useful information, namely that expected winnings are in the neighborhood of \$15,000 give or take a few thousand dollars.  What if we want a more exact answer?  Say one that seems to be within a few dollars of the true integral value.  One way to do this is to take a larger $N$.  Taking, say $N=10,000,000$, I can narrow the range of estimates that I get for expected winnings to be between \$14,966 and \$14,980; a much narrower interval! 
+
+```
+## sample for 1000000 points
+#hideall
+for i in 1:10
+    N = 1000  ## change to 10000000 as desired to reproduce results
+
+    gridDF2 = DataFrame(winningsMultiplier = rand(N),
+                        maxWinnings = 10^5 * rand(N))
+    ## add column to DataFrame
+    gridDF2.integrand = f.(gridDF2.winningsMultiplier,gridDF2.maxWinnings)
+    expectedWinnings = mean(gridDF2.integrand)
+    println(expectedWinnings)
+end
+```
+
+As one gets to higher dimensional problems, sampling efficiency becomes critical to getting reasonable integral estimates in a finite amount of time.  Using a uniformly distributed grid of points in high dimensional spaces, most points for which a summand is calculated will be close to zero (do end-of-chapter exercise to gain more intuition about this).   Hence, the majority of sampling calculations are worthless as there is only a thin region of the sample space where both the function value and the probability are both large enough to have an impact on the final estimate.  For most mildly complex problems, the rate of asymtpotic convergence for any estimate becomes prohibitively slow when using plain-vanilla Monte Carlo integration.  In our quest for greater sampling efficiency, we will now look at two other sampling techniques belonging to a class of algorithms known as Markov-Chain Monte Carlo.
 
 ### Markov Chains
 
-A *Markov chain* is a sequence of points $q$ in parameter space $\mathcal{Q}$ generated using a special mapping where each subsequent point $q'$ is a special stochastic function of its preceding point $q$.  The special function is known as a *Markov transition*, specifiying a conditional density function $\mathbb{T}(q'|q)$ over all potential points to jump to, and will be chosen as to preserve the target distribution:
+A *Markov chain* is a sequence of points $q$ in parameter space $\mathcal{Q}$ generated using a special mapping where each subsequent point $q'$ is a special stochastic function of its preceding point $q$; by definition, these sequentially selected points are not independent of one another.  The special function is known as a *Markov transition*, specifiying a conditional density function $\mathbb{T}(q'|q)$ over all potential points to jump to, and will be chosen as to preserve the target distribution:
 
 $$
 \pi(q) = \int_Q dq' \, \pi(q') \, \mathbb{T}(q|q')
@@ -253,3 +301,8 @@ Imagine $N$ particles in a square.
 ## Exercises
 
 Add the Kumaraswamy Distribution to Distributions.jl.  Compare to Beta Distribution.
+
+Create a plot of sampling efficiency for estimating the integrand in (?7?).  Measure efficiency by calculating the range of estimates you get for various N and sampling methods. The horizontal axis of the plot should be # of sample and the vertical axis should be the range.  Use a different color point for each of the three methodologies.
+
+In proof A.20 of https://cs.dartmouth.edu/wjarosz/publications/dissertation/appendixA.pdf, explain what mathematical concept is being used to from one each of the proof to the subsequent line of the proof.
+
