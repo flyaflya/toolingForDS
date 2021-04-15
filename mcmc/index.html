@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+   <link rel="stylesheet" href="/libs/katex/katex.min.css">
+     
+   <link rel="stylesheet" href="/libs/highlight/github.min.css">
+   
+  <link rel="stylesheet" href="/css/franklin.css">
+<link rel="stylesheet" href="/css/poole_hyde.css">
+<link rel="stylesheet" href="/css/custom.css">
+<!-- style adjustments -->
+<style>
+  html {font-size: 17px;}
+  .franklin-content {position: relative; padding-left: 8%; padding-right: 5%; line-height: 1.35em;}
+  @media (min-width: 940px) {
+    .franklin-content {width: 100%; margin-left: auto; margin-right: auto;}
+  }
+  @media (max-width: 768px) {
+    .franklin-content {padding-left: 6%; padding-right: 6%;}
+  }
+</style>
+<link rel="icon" href="/assets/favicon.png">
+
+   <title>Markov Chain Monte Carlo</title>  
+</head>
+<body>
+<div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <br>
+      <img src="/assets/oxInBarn.jpg" style="width: 120px; height: auto; display: block; margin-left: auto; margin-right: auto">
+      <h1><a href="/">Tooling for Data Storytellers</a></h1>
+      <p class="lead">Unifying narrative, math, and code.</p>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-nav-item " href="/">Home</a>
+      <a class="sidebar-nav-item " href="/vision/">The Vision</a>
+      <a class="sidebar-nav-item " href="/luxorViz/">Visualization with Luxor</a>
+      <!-- <a class="sidebar-nav-item {{ispage jointDist/*}}active{{end}}" href="/jointDist/">Joint Distributions</a> -->
+      <a class="sidebar-nav-item " href="/mcIntegration/">Monte Carlo Integration</a>
+      <!-- <a class="sidebar-nav-item {{ispage mcmc/*}}active{{end}}" href="/mcmc/">Markov Chain Monte Carlo</a> -->
+    </nav>
+    <p>&copy; Adam J. Fleischhacker.</p>
+  </div>
+</div>
+<div class="content container">
+
+<!-- Content appended here -->
+<div class="franklin-content"><h2 id="markov_chain_monte_carlo"><a href="#markov_chain_monte_carlo" class="header-anchor">Markov Chain Monte Carlo</a></h2>
+<p>Since our goal is speed, we need to aim for sampling from \(g(Q)\) so that we get a uniform value for \(\frac{\pi(q)\, f(q)}{g(q)}\).  While this goal is ideal when you have one function \(f\) of critical interest, customizing the sampling method \(g(Q)\) for each function of interest will require repeated adjustment; and this adjustment is often a challenge.  So for both mathematical tractability and applied pragmatism, a very popular approach called Markov Chain Monte Carlo seeks a slighlty simpler goal; find a \(g(q)\) to sample from that yields samples from \(g(q)\) indistinguishable from samples of \(\pi(q)\). </p>
+<p><span class="bibref"><a href="#betancourt2018">Betancourt (2018)</a></span> justifies this simplification well:</p>
+<blockquote>
+<p>&quot;In practice we are often interested in computing expectations with respect to many target functions, for example in Bayesian inference we typically summarize our uncertainty with both means and variance, or multiple quantiles.  Any method that depends on the specifics details of any one function will then have to be repeatedly adjusted for each new function we encounter, expanding a single computational problem into many. Consequently, &#91;we assume&#93; that any relevant function of interest is sufficiently uniform in parameter space that its variation does not strongly effect the integrand.&quot;</p>
+</blockquote>
+<h3 id="markov_chains"><a href="#markov_chains" class="header-anchor">Markov Chains</a></h3>
+<p>The key trick, widely used in practice, is to get \(N\) samples drawn from density \(g(q)\) so that as \(N\) gets large those samples become indistinuishable from a process using \(\pi(q)\) to generate independent samples.  If this is done properly, this trick vastly simplifies how we estimate \(\mathbb{E}_{\pi(Q)}[f]\): </p>
+\[\begin{aligned}
+\mathbb{E}_{\pi(Q)}[f] &\approx \frac{1}{N}\sum_{i=1}^{N} \frac{\bcancel{\pi(q_i)}\, f(q_i)}{\bcancel{g(q_i)}}\\
+    & \approx \frac{1}{N}\sum_{i=1}^{N} f(q_i)
+\end{aligned}\]
+<p>where to estimate \(\mathbb{E}_{\pi(Q)}[f]\) one plugs in the \(N\) samples of \(q_i\) into \(f(q)\).  In data-storytelling, each \(f(q_i)\) can be thought of as a real-world measurement of interest, like revenue or number of customers, and therefore, each draw of \(f(q_i)\) represents an equally likely outcome of that measurement. </p>
+<p>The most-notable class of algorithms that support getting samples from \(g(q)\)  which are indistinguishable from samples from \(\pi(q)\) directly are called Markov Chain Monte Carlo &#40;MCMC&#41; algorithms and they have a neat history stemming from their role simulating atomic bomb reactions for the Manhattan project.  The first appearance of the technique in academia is now referred to as the Metropolis algorithm <span class="bibref">(<a href="#metrop53">Metropolis et al. (1953)</a>)</span> with more general application lucidly explained in <span class="bibref"><a href="#hastings1970">Hastings, W. K. (1970)</a></span>.</p>
+<p>Surprisingly, the algorithms that approximate drawing independent samples from \(\pi(q)\) actually construct correlated or dependent samples of \(q\).   The samples are drawn sequentially where each subsequent point \(q_{i+1}\) is drawn using a special stochastic &#40;probabilistic&#41; function of the preceding point \(q\).  Let&#39;s call this special function the <em>transition function</em>, notated by \(\mathbb{T}\), and the sequence of points is a type of <em>Markov chain</em>.   &#40;More generally, Markov chains are sequence of points where the next state is a probablistic function of the current state- <a href="https://en.wikipedia.org/wiki/Markov_chain">see here</a>.&#41;</p>
+<p>The algorithms yield samples of \(\pi(q)\) as long as one uses a properly constructed transition function \(\mathbb{T}(q)\) and has access to a function proportional to the desired density, let&#39;s still call this \(g(q)\) even though it can represent an unnormalized version of the normalized \(g(q)\) referred to in &#40;?4?&#41;; both are used for generating sampling distributions.  The prototypical example example of \(g(q)\) is an unnormalized Bayesian posterior distribution.  </p>
+<p>A properly constructed transition function \(\mathbb{T}(q)\) is most easily created &#40;there are other ways&#41; by satisfying two conditions:</p>
+<ul>
+<li><p><strong>Detailed Balance</strong>:  The probability of being at any one point point in sample space and transitioning to a different point in sample sapce\(g(q_{i}) \, \mathbb{T}(q_{i+1}|q_i) = g(q_{i+1}) \, \mathbb{T}(q_{i}|q_{i+1})\)</p>
+</li>
+<li><p><strong>Ergodicity</strong>:  Each sample \(q\) in the chain is <em>aperiodic</em> - the chain does not repeat the same \(q\) at fixed intervals; and each possible sample \(q\) is <em>positive recurrent</em> - given enough samples, there is non-zero probability density of any other \(q\) being part of the chain. </p>
+</li>
+</ul>
+<p>The easiest way to </p>
+<h3 id="equation_of_state_calculations"><a href="#equation_of_state_calculations" class="header-anchor">Equation of State Calculations</a></h3>
+<p>Imagine \(N\) particles in a square.</p>
+<h2 id="references"><a href="#references" class="header-anchor">References</a></h2>
+<ul>
+<li><p><a id="betancourt2018" class="anchor"></a> Betancourt, M. &#40;2017&#41;. <em>A conceptual introduction to Hamiltonian Monte Carlo.</em> arXiv preprint arXiv:1701.02434.</p>
+</li>
+<li><p><a id="metrop53" class="anchor"></a> Metropolis, N., Rosenbluth, A. W., Rosenbluth, M. N., Teller, A. H., &amp; Teller, E. &#40;1953&#41;. <em>Equation of state calculations by fast computing machines.</em> * The Journal of Chemical Physics, <strong>21</strong>&#40;6&#41;, 1087-1092.</p>
+</li>
+<li><p><a id="hastings1970" class="anchor"></a> Hastings, W. K. &#40;1970&#41;. <em>Monte Carlo sampling methods using Markov chains and their applications.</em> Biometrika, <strong>57</strong>&#40;1&#41;, 97 - 109.</p>
+</li>
+<li><p><a id="13633231208144796923" class="anchor"></a> Hastings, W. K. &#40;1970&#41;. <em>Monte Carlo sampling methods using Markov chains and their applications.</em> Biometrika, <strong>57</strong>&#40;1&#41;, 97 - 109.</p>
+</li>
+</ul>
+<h2 id="exercises"><a href="#exercises" class="header-anchor">Exercises</a></h2>
+<p>Add the Kumaraswamy Distribution to Distributions.jl.  Compare to Beta Distribution.</p>
+<p>Create a plot of sampling efficiency for estimating the integrand in &#40;?7?&#41;.  Measure efficiency by calculating the range of estimates you get for various N and sampling methods. The horizontal axis of the plot should be # of sample and the vertical axis should be the range.  Use a different color point for each of the three methodologies.</p>
+<p>In proof A.20 of https://cs.dartmouth.edu/wjarosz/publications/dissertation/appendixA.pdf, explain what mathematical concept is being used to from one each of the proof to the subsequent line of the proof.</p>
+<p>Rewrite a paragraph or two of your choosing where you found the math or narrative to be confusing.  </p>
+<div class="page-foot">
+  <div class="copyright">
+    &copy; Adam J. Fleischhacker. Last modified: April 15, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
+  </div>
+</div>
+</div><!-- CONTENT ENDS HERE -->
+    </div>  <!-- div: content container -->
+    
+        <script src="/libs/katex/katex.min.js"></script>
+<script src="/libs/katex/auto-render.min.js"></script>
+<script>renderMathInElement(document.body)</script>
+
+    
+    
+        <script src="/libs/highlight/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();hljs.configure({tabReplace: '    '});</script>
+
+    
+  </body>
+</html>

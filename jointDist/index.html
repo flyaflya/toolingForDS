@@ -38,9 +38,9 @@
       <a class="sidebar-nav-item " href="/">Home</a>
       <a class="sidebar-nav-item " href="/vision/">The Vision</a>
       <a class="sidebar-nav-item " href="/luxorViz/">Visualization with Luxor</a>
-      <!-- <a class="sidebar-nav-item {{ispage jointDist/*}}active{{end}}" href="/jointDist/">Joint Distributions</a>
-      <a class="sidebar-nav-item {{ispage menu3/*}}active{{end}}" href="/menu3/">Metropolis Sampling</a>
-      <a class="sidebar-nav-item {{ispage menu4/*}}active{{end}}" href="/menu4/">HTML Page Insert</a> -->
+      <!-- <a class="sidebar-nav-item {{ispage jointDist/*}}active{{end}}" href="/jointDist/">Joint Distributions</a> -->
+      <a class="sidebar-nav-item " href="/mcIntegration/">Monte Carlo Integration</a>
+      <!-- <a class="sidebar-nav-item {{ispage mcmc/*}}active{{end}}" href="/mcmc/">Markov Chain Monte Carlo</a> -->
     </nav>
     <p>&copy; Adam J. Fleischhacker.</p>
   </div>
@@ -49,217 +49,22 @@
 
 <!-- Content appended here -->
 <div class="franklin-content"><h1 id="joint_distributions"><a href="#joint_distributions" class="header-anchor">Joint Distributions</a></h1>
-<p>Given \(n\) random variables \(X_1,\ldots,X_n\), a joint probability distribution, \(\mathcal{P}(X_1,\ldots,X_n)\), assigns a probability value to all possible realizations of a set of random variables.  Using marginalization and/or conditioning, any useful probabilistic query becomes answerable once given a joint distribution; as such, a joint distribution is the gold-standard for representing our uncertainty.</p>
+<p>Given \(n\) random variables \(X_1,\ldots,X_n\), a joint probability distribution, \(\mathcal{P}(X_1,\ldots,X_n)\), assigns a probability value to all possible realizations of a set of random variables.  Using marginalization and/or conditioning, any useful probabilistic query becomes answerable once given a joint distribution; as such, a joint distribution is the gold-standard for representing our uncertainty. &#40;<a href="https://www.causact.com/joint-distributions-tell-you-everything.html">see here for how joint distributions answer probabilistic queries</a>&#41;</p>
 <p>When constructing a joint distribution, however, any size to the problem in terms of numbers of variables and possible realizations, renders a joint distribution:</p>
 <blockquote>
 <p>&quot;unmanageable from every perspective. Computationally, it is very expensive to manipulate and generally too large to store in memory.  Cognitively, it is impossible to acquire so many numbers from a human expert; moreover, the &#91;probability&#93; numbers are very small and do not correspond to events that people can reasonable contemplate.  Statistically, if we want to learn the distribution from data, we would need ridiculously large amounts of data to estimate the many parameters robustly.&quot; <span class="bibref"><a href="#koller2009">Koller & Friedman (2009)</a></span></p>
 </blockquote>
 <p>Additionally, the data storyteller cannot motivate their audience with just a joint distribution - the data storyteller needs an <em>explanation</em>;  even a joint distribution with tremendous predictive power might fail to motivate human decision makers.  For the data storyteller, other criteria by which to judge explanations might be equally important.  From our perspective, <em>simplicity</em> - consisting of explanatory values such as <em>concision</em>, <em>parsimony</em>, and <em>elegance</em> <span class="bibref">(<a href="#wojtowicz2021">Wojtowicz & DeDeo (2021)</a>)</span> - is an equally important criteria that audiences use to judge an explanation.  Fortunately, there is a way to get joint distributions and simplicity through pairing factorization of a joint distribution with psuedo-causal constructs.  </p>
-<h2 id="the_target_distribution"><a href="#the_target_distribution" class="header-anchor">The Target Distribution</a></h2>
-<p>For the moment, let&#39;s assume we have a concise way of representing a joint distribution.  Closely mimicking <span class="bibref"><a href="#betancourt2018">Betancourt (2018)</a></span> in both notation and philosophy, let&#39;s refer to this joint distribution&#39;s density function as \(\pi(q)\) where every point \(q \in \mathcal{Q}\) represents a single realization of \(D\) parameters in sample space \(Q\).  </p>
-<p>When we tell stories about density \(\pi\), we will want to do so in a way that summarizes our knowledge.  Mathematically, the summaries we make will all be in the form of expectations of some function \(f\) such the expectation is reduced to an integral over parameter space:</p>
-\[
-\mathbb{E}[f] = \int_{\mathcal{Q}} dq\, \pi(q)\, f(q).
-\]
-<p>Integrals, like the above, cannot be evaluated analytically for typical problems of a data storyteller, hence the data storyteller will resort to numerical methods for approximating answers to the above.  The approximations will come in the form of representative samples as output by a class of algorithms known as Monte Carlo methods.  We introduce a few of those algorithms below using the following illustrative example.</p>
-<h3 id="an_example_target_distribution"><a href="#an_example_target_distribution" class="header-anchor">An Example Target Distribution</a></h3>
-<p>For our example, let&#39;s imagine a game where you will win money based on the output of two random events.  The first random event is that you will get a chance to spin the below spinner.</p>
-<img src="/assets/jointDist/output/spinnerWithFriction.gif" alt="">
-<p>The number the spinner ends up pointing to, a decimal between 0 and 1, is your <em>win multiplier</em>.  Let&#39;s call it \(X\).  The second random event is that each day the game organizers decide on the <em>max win amount</em>, \(Y\).  Every contestent \(i\) for that day has a chance to win \(W_i\) dollars where \(\$W_i = X_i \times Y\).  Assume you know the probability density function for the spinner:</p>
-\[
-\pi_X(x) = 6x \times (1-x)    \textrm{  where } x \in (0,1)
-\]
-<p>We graph the above density function with the following code:</p>
-<pre><code class="language-julia">using Gadfly
-
-function π_X&#40;x::Real&#41;  ## type \pi and press &lt;tab&gt; to get π symbol
-    if x &gt;&#61; 0 &amp;&amp; x &lt;&#61;1
-        6*x*&#40;1-x&#41;
-    else
-        0
-    end
-end
-
-# plot&#40;f::Function, lower, upper, elements...; mapping...&#41;
-plot&#40;π_X, 0, 1,
-     Guide.xlabel&#40;&quot;x&quot;&#41;,
-     Guide.ylabel&#40;&quot;π_X&#40;x&#41;&quot;&#41;&#41;</code></pre>
-
-<img src="/assets/jointDist/code\output\densitySpinner.svg" alt="">
-<p>We can see that the &quot;higher friction zone&quot; of the spinner leads to more outcomes near 0.5 than outcomes near 0 or 1.</p>
-<p>Additionally, assume the probability density function for the day&#39;s maximum win amount is also known:</p>
-\[
-\pi_Y(y) = 2 \times 8 \times \frac{y}{10^5} \times \left(1 - (\frac{y}{10^5})^2\right)^7 \times \frac{1}{10^5} \textrm{  where } y \in (0,10^5)      
-\]
-<p>This is actually derived from a <a href="https://en.wikipedia.org/wiki/Kumaraswamy_distribution">Kumaraswamy distribution</a>, but let&#39;s ignore the obscure distribution name and just plot the density of \(Y\):</p>
-<pre><code class="language-julia">function π_Y&#40;y::Real&#41;  ## type \pi and press &lt;tab&gt; to get π symbol
-    kumaRealization &#61; y / 100000  ## substitute for simplicity
-    jacobian &#61; 1 / 10^5 # jacobian for change of variable
-    if kumaRealization &gt;&#61; 0 &amp;&amp; kumaRealization &lt;&#61;1
-        2*8*kumaRealization*&#40;1-kumaRealization^2&#41;^7*jacobian
-    else
-        0
-    end
-end
-
-# plot&#40;f::Function, lower, upper, elements...; mapping...&#41;
-using Format
-plot&#40;π_Y, 0, 100000,
-        Guide.xlabel&#40;&quot;y&quot;&#41;,Guide.ylabel&#40;&quot;π_Y&#40;y&#41;&quot;&#41;,
-        Scale.x_continuous&#40;labels &#61; x -&gt; format&#40;x, commas &#61; true&#41;&#41;&#41;</code></pre>
-
-<img src="/assets/jointDist/code\output\densityMaxWin.svg" alt="">
-<p>Ultimately, gameplayers would hope to win up to &#36;100,000 &#40;i.e. \(X=1\) and \(Y=10^5\)&#41;, but getting close to this would require one to be very lucky.  So a natural question at this point might be &quot;what winnings can be expected if you get a chance to play this game?&quot;</p>
-<p>Let&#39;s answer this by expressing the game in the language of &#40;1&#41;.  Let \(\mathcal{Q}\) be our sample space where each \(q \in \mathcal{Q}\) can be expressed as 2-tuple of \(x \in X\) and \(y \in Y\):</p>
-\[
-q = (x,y)
-\]
-<p>where due to the independence of \(X\) and \(Y\), the density function for \(\pi_\mathcal{Q}(q) = \pi_{X,Y}(x,y) = \pi_X(x) \times \pi_Y(y)\):</p>
-\[
-\pi_{X,Y}(x,y) = 6x \times (1-x) \times 2 \times 8 \times \frac{y}{10^5} \times \left(1 - (\frac{y}{10^5})^2\right)^7 \times \frac{1}{10^5}\\
-\pi_{X,Y}(x,y) = \frac{3xy}{3125 \times 10^5} \times (1-x) \times \left(1 - \frac{y^2}{10^{10}}\right)^7
-\]
-<p>The function, \(f\), that we are interested in is our winnings, \(f(x,y) = x * y\) and our expectation of winnings:</p>
-\[
-\mathbb{E}[f(x,y)] = \int_{0}^{100000}\int_{0}^{1} dxdy\, \frac{3xy \times (1-x)}{3125 \times 10^5}  \times \left(1 - \frac{y^2}{10^{10}}\right)^7\, xy \\
-\mathbb{E}[f(x,y)] = \int_{0}^{100000}\int_{0}^{1} dxdy\, \frac{3x^2y^2 \times (1-x)}{3125 \times 10^5} \times \left(1 - \frac{y^2}{10^{10}}\right)^7
-\]
-<p>I do not know about you, but I see that integral and I do not want to attempt it analytically.  Isn&#39;t there an easier way? </p>
-<h3 id="monte_carlo_integration"><a href="#monte_carlo_integration" class="header-anchor">Monte Carlo Integration</a></h3>
-<p>One easier way to do integrals is to use Monte Carlo integration.  Recall from calculus &#40;or watch the below video&#41; that an integral, like &#40;6&#41; can be approximated as a summation of small slices of the function being integrated.</p>
-<iframe id="integrals" width="100%" height="360"
-src="https://www.youtube.com/embed/integrals"
-frameborder="0"
-allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-allowfullscreen></iframe>
-
-<p>Defining \(I = \mathbb{E}[f(x,y)]\), then we can approximate \(I\) by a summation of \(N\) points randomly chosen from sample space \(Q\).  We randomly choose the points to avoid interactions that can occur between an evenly-spaced grid and the integrand that is being estimated &#40;e.g. imagine estimating the value of \(\sin(x)\) by taking these evenly-spaced sample points \(x \in \{0,\pi,2\pi,\ldots\}\)&#41;.  Sampling \((x_1,x_2,\ldots,x_N)\) where each \(x_i \sim Uniform(0,1)\) and \((y_1,y_2,\ldots,y_N)\) where each \(y_i \sim Uniform(0,10^5)\), yields the following approximation for \(I\):</p>
-\[
-\hat{I} = \frac{10^5}{N} \sum_{j=1}^{N} \frac{3x_j^2y_j^2}{3125 \times 10^5} \times (1-x_j) \times \left(1 - \frac{y_j^2}{10^{10}}\right)^7 
-\]
-<p>&#40;see <a href="http://math.uchicago.edu/~may/REU2017/REUPapers/Guilhoto.pdf">this article</a> for the formula&#41;</p>
-<p>In Julia, we can get a grid of points with the below code:</p>
-<pre><code class="language-julia">using DataFrames
-using Gadfly
-using Format
-
-N &#61; 1000  ## sample using 1000 points
-
-gridDF &#61; DataFrame&#40;winningsMultiplier &#61; rand&#40;N&#41;,
-                    maxWinnings &#61; 10^5 * rand&#40;N&#41;&#41;
-
-plot&#40;gridDF,
-        x &#61; :winningsMultiplier, 
-        y &#61; :maxWinnings,
-        Scale.y_continuous&#40;labels &#61; x -&gt; format&#40;x, commas &#61; true&#41;&#41;&#41;</code></pre>
-
-<img src="/assets/jointDist/code\output\grid.svg" alt="">
-<p>And we can then add information about evaluating the integrand of &#40;6&#41; or equivalently the summand of &#40;7&#41; at each of the 1,000 grid points.</p>
-<pre><code class="language-julia">## add summand/integrand values as color and contour
-function f&#40;x::Real,y::Real&#41;
-    3*x^2*y^2 / &#40;3125 * 10^5&#41; * &#40;1 - x&#41; * &#40;1 - y^2/10^10&#41;^7
-end
-
-## add column to DataFrame using above function
-gridDF.integrand &#61; f.&#40;gridDF.winningsMultiplier,gridDF.maxWinnings&#41;
-
-plot&#40;gridDF,
-        x &#61; :winningsMultiplier, 
-        y &#61; :maxWinnings,
-        color &#61; :integrand,
-        Scale.y_continuous&#40;labels &#61; x -&gt; format&#40;x, commas &#61; true&#41;&#41;&#41;</code></pre>
-
-<img src="/assets/jointDist/code\output\gridColor.svg" alt="">
-<p>From the above plot, we see that the largest contributors to \(\hat{I}\) are in a sweetspot of winning multipliers near 60&#37; - 70&#37; and maximum winnings of around &#36;30,000 - &#36;40,000.  These are the points that most contribute to moving the estimate of expected winnings away from zero.  Points above &#36;50,000 in maximum winnings do not contribute as much because they are improbable events.  Additonally, the most probable of all the points, somewhere near 50&#37; and &#36;25,000, is not the largest contributor to the expectation. So it is not the largest points in terms of probability or in terms of total winnings &#40;upper-right hand corner&#41; that contribute the most to our expectation, rather points somewhere in between those extremes  contribute the largest summands.  </p>
-<p>In code, our estimate of expected winnings turns out to be:</p>
-<pre><code class="language-julia">using Statistics
-expectedWinnings &#61; 10^5 * mean&#40;gridDF.integrand&#41; # est of I</code></pre>
-<pre><code class="plaintext">14711.18647123317</code></pre>
-<p>Your calculation for expected winnings may be different than mine &#40;i.e. due to inherent randomness in Monte Carlo integration&#41;.  However, asymptotically if we were to increase \(N\), then our numbers would converge; eventually or at least after infinite samples🤷 &#40;see <a href="https://en.wikipedia.org/wiki/Monte_Carlo_integration">the Wikipedia article on Monte Carlo integration</a>&#41;.  Here is how to see some of my randomly generated summand values - observe that highest maximum winnings does not mean largest contribution to the integrand due to the improbability of those events occurring.</p>
-<pre><code class="language-julia">gridDF</code></pre>
-<pre><code class="plaintext">1000×3 DataFrame
-  Row │ winningsMultiplier  maxWinnings  integrand
-      │ Float64             Float64      Float64
-──────┼──────────────────────────────────────────────
-    1 │         0.18664        83913.1   0.000380038
-    2 │         0.509811       21291.9   0.400719
-    3 │         0.0408771      22371.5   0.00537534
-    4 │         0.446657       15665.8   0.218564
-    5 │         0.876494       13762.4   0.150909
-    6 │         0.52673        40830.6   0.586255
-    7 │         0.970163       97186.5   4.11912e-9
-    8 │         0.218009       11705.7   0.0443887
-  ⋮   │         ⋮                ⋮            ⋮
-  994 │         0.420835       63023.3   0.113122
-  995 │         0.0580471       7163.89  0.0015084
-  996 │         0.470881       81398.6   0.00371654
-  997 │         0.378586        1423.16  0.0017293
-  998 │         0.396647       43927.0   0.392091
-  999 │         0.0641438      79906.8   0.000190384
- 1000 │         0.16086         8070.78  0.0129707
-                                     985 rows omitted</code></pre>
-<h3 id="more_efficient_monte_carlo_integration"><a href="#more_efficient_monte_carlo_integration" class="header-anchor">More Efficient Monte Carlo Integration</a></h3>
-<p>If the highest summands/integrands sway our expected estimates much more dramatically than all of the close-to-zero summands, then our estimation error could be reduced more efficiently if our estimation method spends more time sampling from high summand values and less time sampling at near-zero summands.  One way to accomplish this is to use non-uniform sampling of points; sample the far-from-zero summands more frequently and the close-to-zero summands less frequently.  In doing this, each point can no longer be weighted equally, but rather our estimate &#40;&#91;see here for more info on this forumla&#93;&#40;https://cs.dartmouth.edu/wjarosz/publications/dissertation/appendixA.pdf&#41;&#41; gets adjusted by the probability density function of drawing the non-uniform sample, labelling the sampling probability density function \(g_{X,Y}(x,y)\) gives:</p>
-\[
-\hat{I} = \mathbb{E}_{X,Y}[f(x,y)] = \frac{1}{N} \sum_{j=1}^{N} \frac{\pi_{X,Y}(x,y) \times f(x,y)}{g_{X,Y}(x,y)}
-\]
-<p>So instead of a uniform grid of points, I will get points in a smarter way.  I will sample the winnings multiplier using a \(\textrm{Beta}(2,2)\) distribution and the maximum winnings by using a \(\textrm{Beta}(2,8)\) distribution modified for support over \((0,10^5)\):</p>
-<pre><code class="language-julia">using Random, Distributions
-
-
-
-N &#61; 1000  ## sample using 1000 points
-
-gridDF &#61; DataFrame&#40;winningsMultiplier &#61; rand&#40;N&#41;,
-                    maxWinnings &#61; 10^5 * rand&#40;N&#41;&#41;
-
-plot&#40;gridDF,
-        x &#61; :winningsMultiplier, 
-        y &#61; :maxWinnings,
-        Scale.y_continuous&#40;labels &#61; x -&gt; format&#40;x, commas &#61; true&#41;&#41;&#41;</code></pre>
-<h2 id="the_metropolis_hastings_algorithm"><a href="#the_metropolis_hastings_algorithm" class="header-anchor">The Metropolis Hastings Algorithm</a></h2>
-<p>In the above example, we used Monte Carlo integration to calculate an integral that I was too intimidated by to attempt analytically.  It gave us useful information, namely that expected winnings are in the neighborhood of &#36;15,000 give or take a few thousand dollars.  What if we want a more exact answer?  Say one that seems to be within a few dollars of the true integral value.  One way to do this is to take a larger \(N\).  Taking, say \(N=10,000,000\), I can narrow the range of estimates that I get for expected winnings to be between &#36;14,966 and &#36;14,980; a much narrower interval&#33; </p>
-<pre><code class="language-julia">## sample for 1000000 points
-#hideall
-for i in 1:10
-    N &#61; 1000  ## change to 10000000 as desired to reproduce results
-
-    gridDF2 &#61; DataFrame&#40;winningsMultiplier &#61; rand&#40;N&#41;,
-                        maxWinnings &#61; 10^5 * rand&#40;N&#41;&#41;
-    ## add column to DataFrame
-    gridDF2.integrand &#61; f.&#40;gridDF2.winningsMultiplier,gridDF2.maxWinnings&#41;
-    expectedWinnings &#61; mean&#40;gridDF2.integrand&#41;
-    println&#40;expectedWinnings&#41;
-end</code></pre>
-<p>As one gets to higher dimensional problems, sampling efficiency becomes critical to getting reasonable integral estimates in a finite amount of time.  Using a uniformly distributed grid of points in high dimensional spaces, most points for which a summand is calculated will be close to zero &#40;do end-of-chapter exercise to gain more intuition about this&#41;.   Hence, the majority of sampling calculations are worthless as there is only a thin region of the sample space where both the function value and the probability are both large enough to have an impact on the final estimate.  For most mildly complex problems, the rate of asymtpotic convergence for any estimate becomes prohibitively slow when using plain-vanilla Monte Carlo integration.  In our quest for greater sampling efficiency, we will now look at two other sampling techniques belonging to a class of algorithms known as Markov-Chain Monte Carlo.</p>
-<h3 id="markov_chains"><a href="#markov_chains" class="header-anchor">Markov Chains</a></h3>
-<p>A <em>Markov chain</em> is a sequence of points \(q\) in parameter space \(\mathcal{Q}\) generated using a special mapping where each subsequent point \(q'\) is a special stochastic function of its preceding point \(q\); by definition, these sequentially selected points are not independent of one another.  The special function is known as a <em>Markov transition</em>, specifiying a conditional density function \(\mathbb{T}(q'|q)\) over all potential points to jump to, and will be chosen as to preserve the target distribution:</p>
-\[
-\pi(q) = \int_Q dq' \, \pi(q') \, \mathbb{T}(q|q')
-\]
-<p>Constructing a <em>Markov transition</em> that satisfies the above is challenging, but the first large success story of this being done comes from the Metropolis algorithm <span class="bibref">(<a href="#metrop53">Metropolis et al. (1953)</a>)</span> with more general application explained in <span class="bibref"><a href="#hastings1970">Hastings, W. K. (1970)</a></span>.  We review that latter work here.</p>
-<h3 id="equation_of_state_calculations"><a href="#equation_of_state_calculations" class="header-anchor">Equation of State Calculations</a></h3>
-<p>Imagine \(N\) particles in a square.</p>
 <h2 id="references"><a href="#references" class="header-anchor">References</a></h2>
 <ul>
 <li><p><a id="koller2009" class="anchor"></a> Koller, D., &amp; Friedman, N. &#40;2009&#41;. <em>Probabilistic graphical models: principles and techniques.</em> MIT press.</p>
 </li>
 <li><p><a id="wojtowicz2021" class="anchor"></a> Wojtowicz, Z., &amp; DeDeo, S. &#40;2021&#41;. <em>From Probability to Consilience: How Explanatory Values Implement Bayesian Reasoning.</em> Trends in Cognitive Sciences <strong>24</strong>&#40;12&#41; pp.981–993.</p>
 </li>
-<li><p><a id="betancourt2018" class="anchor"></a> Betancourt, M. &#40;2017&#41;. <em>A conceptual introduction to Hamiltonian Monte Carlo.</em> arXiv preprint arXiv:1701.02434.</p>
-</li>
-<li><p><a id="metrop53" class="anchor"></a> Metropolis, N., Rosenbluth, A. W., Rosenbluth, M. N., Teller, A. H., &amp; Teller, E. &#40;1953&#41;. <em>Equation of state calculations by fast computing machines.</em> * The Journal of Chemical Physics, <strong>21</strong>&#40;6&#41;, 1087-1092.</p>
-</li>
-<li><p><a id="hastings1970" class="anchor"></a> Hastings, W. K. &#40;1970&#41;. <em>Monte Carlo sampling methods using Markov chains and their applications.</em> Biometrika, <strong>57</strong>&#40;1&#41;, 97 - 109.</p>
-</li>
 </ul>
-<h2 id="exercises"><a href="#exercises" class="header-anchor">Exercises</a></h2>
-<p>Add the Kumaraswamy Distribution to Distributions.jl.  Compare to Beta Distribution.</p>
-<p>Create a plot of sampling efficiency for estimating the integrand in &#40;?7?&#41;.  Measure efficiency by calculating the range of estimates you get for various N and sampling methods. The horizontal axis of the plot should be # of sample and the vertical axis should be the range.  Use a different color point for each of the three methodologies.</p>
-<p>In proof A.20 of https://cs.dartmouth.edu/wjarosz/publications/dissertation/appendixA.pdf, explain what mathematical concept is being used to from one each of the proof to the subsequent line of the proof.</p>
 <div class="page-foot">
   <div class="copyright">
-    &copy; Adam J. Fleischhacker. Last modified: April 08, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
+    &copy; Adam J. Fleischhacker. Last modified: April 15, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
   </div>
 </div>
 </div><!-- CONTENT ENDS HERE -->

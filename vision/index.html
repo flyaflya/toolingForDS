@@ -37,9 +37,9 @@
       <a class="sidebar-nav-item " href="/">Home</a>
       <a class="sidebar-nav-item active" href="/vision/">The Vision</a>
       <a class="sidebar-nav-item " href="/luxorViz/">Visualization with Luxor</a>
-      <!-- <a class="sidebar-nav-item {{ispage jointDist/*}}active{{end}}" href="/jointDist/">Joint Distributions</a>
-      <a class="sidebar-nav-item {{ispage menu3/*}}active{{end}}" href="/menu3/">Metropolis Sampling</a>
-      <a class="sidebar-nav-item {{ispage menu4/*}}active{{end}}" href="/menu4/">HTML Page Insert</a> -->
+      <!-- <a class="sidebar-nav-item {{ispage jointDist/*}}active{{end}}" href="/jointDist/">Joint Distributions</a> -->
+      <a class="sidebar-nav-item " href="/mcIntegration/">Monte Carlo Integration</a>
+      <!-- <a class="sidebar-nav-item {{ispage mcmc/*}}active{{end}}" href="/mcmc/">Markov Chain Monte Carlo</a> -->
     </nav>
     <p>&copy; Adam J. Fleischhacker.</p>
   </div>
@@ -48,7 +48,7 @@
 
 <!-- Content appended here -->
 <div class="franklin-content"><h1 id="the_vision"><a href="#the_vision" class="header-anchor">The Vision</a></h1>
-<p>The data storyteller changes the real-world by cycling through four inter-dependent stages of effortas shown in the figure below:</p>
+<p>The data storyteller changes the real-world by cycling through four inter-dependent stages of effort as shown in the figure below:</p>
 <img src="/assets/vision/code/stagesOfADataStory.jpg" alt="">
 <p>In the <strong>modelling stage</strong>, the storyteller faithfully represents the real-world as a mathematical construct.  Since there are infinite mathematical constructs, good storytellers use the nature of observed data, the knowledge of experts, and their own beliefs to narrow down the scope of plausible models that might serve as abstractions of the real-world.  For a data storyteller, black box models that might make successful predictions, like neural networks, are simply not good enough; neural networks are tools of automation, not motivation.  Hence, storyteller models must be transparent, interpretable, and sufficiently intuitive so that the storyteller&#39;s audience is compelled to believe model results and take action based on model insights.</p>
 <p>The <strong>conditioning stage</strong> is where data is used to inform the model; to reallocate plausiblity among competing models and their parameters; and to ensure that models/parameters which are more consistent with the data are given more credibility.  Not all models, even if properly specified mathematically, will yield useful results during this stage.  Most updating of real-world models in light of data is intractable; hence, computational approximations are all we can hope for.  If the algorthms are not fast-enough or the approximations not faithful to their mathematical counterparts, then the results of this stage are useless.  Hence, a good data storyteller seeks not only a faithful model of the real-world, but a model likely to yield useful results when combined with data.</p>
@@ -70,14 +70,14 @@
 </li>
 <li><p>Packages that are written in pure Julia are preferred to avoid cross-platform integration headaches as is faced when using R or Python for machine learning or Stan for probabilistic programming.</p>
 </li>
-<li><p>Probabilistic programming is the only way to create interpretable models - i.e. models that motivate by telling a story.  Black box models &#40;e.g. neural networks&#41; should be used sparingly and mostly for automation tasks.</p>
+<li><p>Probabilistic programming is the best way to create interpretable models - i.e. models that motivate by telling a story.  Black box models &#40;e.g. neural networks&#41; should be used sparingly and mostly for automation tasks.</p>
 </li>
 <li><p>Of all coding languages that have intuitive and readable syntax, Julia is by far the fastest at executing human-readable code.  Afterall, our goal is not to provide tools to programmers, rather we want to provide tools to data storytellers who value readable code, but need the built-in speed to condition on data in reasonable amounts of time.</p>
 </li>
 </ul>
 <div class="page-foot">
   <div class="copyright">
-    &copy; Adam J. Fleischhacker. Last modified: April 08, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
+    &copy; Adam J. Fleischhacker. Last modified: April 09, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
   </div>
 </div>
 </div><!-- CONTENT ENDS HERE -->
