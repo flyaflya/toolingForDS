@@ -58,7 +58,7 @@ Very cool!  You drew a rounded rectangle.  In this chapter, we are going to pret
 ```julia:trackLength
 ## track length calculation
 cornerRadius = 100
-straightDistances = 2*(500 - cornerRadius) + 2 *(400 - cornerRadius)
+straightDistances = 2*(500 - 2*cornerRadius) + 2 *(400 - 2*cornerRadius)
 curvedDistance = 2 * π * cornerRadius
 totalDist = straightDistances + curvedDistance
 ```
@@ -102,6 +102,6 @@ Your next milestone is going to be to animate the orange marble to go around the
 
 ## Exercise
 
-Animate the orange marble to go around the navy-blue marble track at a constant speed of 1000 units per second (a little over two seconds per lap).  Using 20 frames per second, you will need 200 frames to show 10 seconds of the animation.  Upload both your code and a gif file of the animation.
+Animate the orange marble to go around the navy-blue marble track at a constant speed of 1000 units per second (around 1.6 seconds per lap).  Using 20 frames per second, you will need 200 frames to show 10 seconds of the animation and should see a little over 6 laps around the track.  Upload both your code and a gif file of the animation.
 
 Create an additional animation, identical to the previous one, except for two things.  1) Use the `easeoutquint` easing function to make the marble start at a fast speed and then slow down significantly, and 2) place your name in a large font at the center of the track.  Upload just your gif file for this part.
