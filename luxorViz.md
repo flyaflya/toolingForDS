@@ -28,7 +28,7 @@ The below video will introduce the package manager in Julia.  We will use a surp
 
 {{youtube pkgMgr}}
 
-Make sure to install the `Luxor` package and review [the documentation](http://juliagraphics.github.io/Luxor.jl/stable/).  You will then be able to understand and run the following code:
+Make sure to install the `Luxor` package and review [the documentation](http://juliagraphics.github.io/Luxor.jl/stable/).  You will then be able to understand and run the following code (use CTRL+ENTER to execute each line of code one at a time):
 
 ```julia:intro
 using Luxor

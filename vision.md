@@ -3,7 +3,7 @@
 
 # The Vision
 
-The data storyteller changes the real-world by cycling through four inter-dependent stages of effortas shown in the figure below:
+The data storyteller changes the real-world by cycling through four inter-dependent stages of effort as shown in the figure below:
 
 \fig{stagesOfADataStory.jpg}
 
@@ -23,5 +23,5 @@ The **communication stage** is where many data models are left to die.  When dec
     * Corollary:  Named probability distributions should be replaced by quantile estimates.  Uncertainty is more easily expressed as a 90% confidence interval, support, and a median rather than some named probability distribution.
 * Julia packages that do not play well with others will not be used.  The ecosystem is relatively new, so this happens quite often.
 * Packages that are written in pure Julia are preferred to avoid cross-platform integration headaches as is faced when using R or Python for machine learning or Stan for probabilistic programming.
-* Probabilistic programming is the only way to create interpretable models - i.e. models that motivate by telling a story.  Black box models (e.g. neural networks) should be used sparingly and mostly for automation tasks.
+* Probabilistic programming is the best way to create interpretable models - i.e. models that motivate by telling a story.  Black box models (e.g. neural networks) should be used sparingly and mostly for automation tasks.
 * Of all coding languages that have intuitive and readable syntax, Julia is by far the fastest at executing human-readable code.  Afterall, our goal is not to provide tools to programmers, rather we want to provide tools to data storytellers who value readable code, but need the built-in speed to condition on data in reasonable amounts of time.
