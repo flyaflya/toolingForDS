@@ -353,18 +353,89 @@ end
 
 
 ##non-uniform sampling
-using Random, Distributions
+using Random, Distributions, DataFrames, Gadfly, Format
 
-xSamplingDist = Beta(2,2)  ## winnings winningsMultiplier
-ySamplingDist = Beta(2,8)  ## maxWinnings 
+xSamplingDist = TruncatedNormal(0.65,0.30,0,1)  ## winnings winningsMultiplier
+ySamplingDist = TruncatedNormal(35000,20000,0,100000)
 
-Random.seed!(123) # Setting the seed
+Random.seed!(123) # Setting the seed so we can get the same random numbers
 N = 1000  ## sample using 1000 points
 
-gridDF = DataFrame(winningsMultiplier = rand(N),
-                    maxWinnings = 10^5 * rand(N))
+gridDF = DataFrame(winningsMultiplier = rand(xSamplingDist,N),
+                    maxWinnings = rand(ySamplingDist,N))
+
+## add summand/integrand values as color and contour
+function integrandFun(x::Real,y::Real)
+    3*x^2*y^2 / (3125 * 10^5) * (1 - x) * (1 - y^2/10^10)^7
+end
+
+function integrandFun2(x::Real,y::Real)
+    integrandFun(x,y) / (pdf(xSamplingDist,x) * pdf(ySamplingDist,y))
+end
+
+gridDF.integrand = integrandFun2.(gridDF.winningsMultiplier,gridDF.maxWinnings)
 
 plot(gridDF,
         x = :winningsMultiplier, 
         y = :maxWinnings,
+        color = :integrand,
         Scale.y_continuous(labels = x -> format(x, commas = true)))
+
+expectedWinnings = sum(gridDF.integrand) / N
+
+## comparison of convergence
+using Random, Distributions, DataFrames, Gadfly, Format
+simDF = DataFrame(N = Integer[], # number of sample points
+                    approxMethod = String[], 
+                    expWinnings = Float64[])
+
+function integrandFun(x::Real,y::Real)
+    3*x^2*y^2 / (3125 * 10^5) * (1 - x) * (1 - y^2/10^10)^7
+end
+
+xSamplingDist = TruncatedNormal(0.65,0.30,0,1)  ## winnings winningsMultiplier
+ySamplingDist = TruncatedNormal(35000,20000,0,100000)
+
+function integrandFun2(x::Real,y::Real)
+    integrandFun(x,y) / (pdf(xSamplingDist,x) * pdf(ySamplingDist,y))
+end
+
+simNum = 1
+for N in range(100,5000,step = 50)
+    ## technique 1 grid - uniform sampling
+    unifDF = DataFrame(winningsMultiplier = rand(N),
+                            maxWinnings = 10^5 * rand(N))
+    unifDF.integrand = integrandFun.(unifDF.winningsMultiplier,    unifDF.maxWinnings)
+
+    ## technique 2 grid - importance sampling
+    impDF = DataFrame(winningsMultiplier = rand(xSamplingDist,N),
+                            maxWinnings = rand(ySamplingDist,N))
+    impDF.integrand = integrandFun2.(impDF.winningsMultiplier,impDF.maxWinnings)
+
+    push!(simDF,[simNum N "uniform" 10^5*mean(unifDF.integrand)])
+    push!(simDF,[simNum N "importance" mean(impDF.integrand)])
+    simNum = simNum + 1
+end
+
+simDF
+plot(simDF,
+        x = :N, y = :expWinnings,
+        color = :approxMethod, Geom.point,
+        Geom.line, 
+        Coord.cartesian(ymin = 14200,
+                        ymax = 15800),
+        Scale.y_continuous(labels = x -> format(x, commas = true)),
+        Theme(point_size = 1pt))
+
+
+## convergence estimate for 1 million points
+for i in 1:20
+    N = 1000000  ## change to 1000000 as desired to reproduce results
+
+    gridDF2 = DataFrame(winningsMultiplier = rand(xSamplingDist,N),
+                            maxWinnings = rand(ySamplingDist,N))
+    ## add column to DataFrame
+    gridDF2.integrand = integrandFun2.(gridDF2.winningsMultiplier,gridDF2.maxWinnings)
+    expectedWinnings = mean(gridDF2.integrand)
+    println(expectedWinnings)
+end
