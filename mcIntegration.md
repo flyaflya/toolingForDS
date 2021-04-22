@@ -391,8 +391,6 @@ The math reveals insight to reduce our estimator variance.  Either we increase $
 ## References
 
 * \biblabel{betancourt2018}{Betancourt (2018)} Betancourt, M. (2017). *A conceptual introduction to Hamiltonian Monte Carlo.* arXiv preprint arXiv:1701.02434.
-* \biblabel{metrop53}{Metropolis et al. (1953)} Metropolis, N., Rosenbluth, A. W., Rosenbluth, M. N., Teller, A. H., & Teller, E. (1953). *Equation of state calculations by fast computing machines.* * The Journal of Chemical Physics, **21**(6), 1087-1092.
-* \biblabel{hastings1970}{Hastings, W. K. (1970)} Hastings, W. K. (1970). *Monte Carlo sampling methods using Markov chains and their applications.* Biometrika, **57**(1), 97 - 109.
 
 ## Exercises
 
@@ -480,5 +478,5 @@ With increased problem complexity, increasing sampling efficiency or decreasing 
 Calculate the expected winnings using the assumption of the spinner game above.  Do this 20 times for each of the three combinations of density functions with $N = 10000$.  For each of the three combinations, keep track of the minimum expected value and maximum expected value that is reported when running the twenty runs.    Create a three row data frame reporting the results and showing the range of output (i.e. the min value and max value) returned by the three different sampling distributions.  Write a comment in the code ranking the efficiency of the three different sampling distributions.  Upload your code that creates this data frame as a `.jl` file.
 
 ### Exercise 3
-In proofs A.20 and A.21 of https://cs.dartmouth.edu/wjarosz/publications/dissertation/appendixA.pdf, explain what mathematical concept is being used to from one each of the proof to the subsequent line of the proof.  Upload a copy of the two proofs annotated with the mathematical concept being applied in each line as a PDF file.  Example mathematical concepts include "law of total probability" or "sum of the variances equals variance of the sums for independent random variables".
+In proofs A.20 and A.21 of https://cs.dartmouth.edu/wjarosz/publications/dissertation/appendixA.pdf, explain what mathematical concept is being used to go from each line of the proof to the subsequent line of the proof.  Upload a copy of the two proofs annotated with the mathematical concept being applied in each line as a PDF file.  Example mathematical concepts include "law of total probability" or "sum of the variances equals variance of the sums for independent random variables".
 
