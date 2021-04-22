@@ -40,7 +40,7 @@
       <a class="sidebar-nav-item " href="/luxorViz/">Visualization with Luxor</a>
       <!-- <a class="sidebar-nav-item {{ispage jointDist/*}}active{{end}}" href="/jointDist/">Joint Distributions</a> -->
       <a class="sidebar-nav-item " href="/mcIntegration/">Monte Carlo Integration</a>
-      <!-- <a class="sidebar-nav-item {{ispage mcmc/*}}active{{end}}" href="/mcmc/">Markov Chain Monte Carlo</a> -->
+      <a class="sidebar-nav-item active" href="/mcmc/">Markov Chain Monte Carlo</a>
     </nav>
     <p>&copy; Adam J. Fleischhacker.</p>
   </div>
@@ -48,32 +48,400 @@
 <div class="content container">
 
 <!-- Content appended here -->
-<div class="franklin-content"><h2 id="markov_chain_monte_carlo"><a href="#markov_chain_monte_carlo" class="header-anchor">Markov Chain Monte Carlo</a></h2>
-<p>Since our goal is speed, we need to aim for sampling from \(g(Q)\) so that we get a uniform value for \(\frac{\pi(q)\, f(q)}{g(q)}\).  While this goal is ideal when you have one function \(f\) of critical interest, customizing the sampling method \(g(Q)\) for each function of interest will require repeated adjustment; and this adjustment is often a challenge.  So for both mathematical tractability and applied pragmatism, a very popular approach called Markov Chain Monte Carlo seeks a slighlty simpler goal; find a \(g(q)\) to sample from that yields samples from \(g(q)\) indistinguishable from samples of \(\pi(q)\). </p>
+<div class="franklin-content"><h1 id="markov_chain_monte_carlo"><a href="#markov_chain_monte_carlo" class="header-anchor">Markov Chain Monte Carlo</a></h1>
+<p>Since our goal is speed, we need to aim for sampling from \(g(Q)\) so that we get a uniform value for \(\frac{\pi(q)\, f(q)}{g(q)}\).  While this goal is ideal when you have one function \(f\) of critical interest, customizing the sampling method \(g(Q)\) for each function of interest will require repeated adjustment; and this adjustment is often a challenge.  So for both mathematical tractability and applied pragmatism, a very popular approach called Markov Chain Monte Carlo &#40;MCMC&#41; seeks a slightly simpler goal; find a \(g(q)\) to sample from that yields samples from \(g(q)\) indistinguishable from samples of \(\pi(q)\). </p>
 <p><span class="bibref"><a href="#betancourt2018">Betancourt (2018)</a></span> justifies this simplification well:</p>
 <blockquote>
 <p>&quot;In practice we are often interested in computing expectations with respect to many target functions, for example in Bayesian inference we typically summarize our uncertainty with both means and variance, or multiple quantiles.  Any method that depends on the specifics details of any one function will then have to be repeatedly adjusted for each new function we encounter, expanding a single computational problem into many. Consequently, &#91;we assume&#93; that any relevant function of interest is sufficiently uniform in parameter space that its variation does not strongly effect the integrand.&quot;</p>
 </blockquote>
-<h3 id="markov_chains"><a href="#markov_chains" class="header-anchor">Markov Chains</a></h3>
-<p>The key trick, widely used in practice, is to get \(N\) samples drawn from density \(g(q)\) so that as \(N\) gets large those samples become indistinuishable from a process using \(\pi(q)\) to generate independent samples.  If this is done properly, this trick vastly simplifies how we estimate \(\mathbb{E}_{\pi(Q)}[f]\): </p>
+<h3 id="the_mathematical_tricks_used_in_mcmc"><a href="#the_mathematical_tricks_used_in_mcmc" class="header-anchor">The Mathematical Tricks Used in MCMC</a></h3>
+<p>The key idea, widely used in practice, is to get \(N\) samples drawn from density \(g(q)\) so that as \(N\) gets large those samples become indistinuishable from a process using \(\pi(q)\) to generate independent samples.  If done properly, this idea allows one to vastly simplify the estimation of \(\mathbb{E}_{\pi(Q)}[f]\): </p>
 \[\begin{aligned}
 \mathbb{E}_{\pi(Q)}[f] &\approx \frac{1}{N}\sum_{i=1}^{N} \frac{\bcancel{\pi(q_i)}\, f(q_i)}{\bcancel{g(q_i)}}\\
     & \approx \frac{1}{N}\sum_{i=1}^{N} f(q_i)
 \end{aligned}\]
-<p>where to estimate \(\mathbb{E}_{\pi(Q)}[f]\) one plugs in the \(N\) samples of \(q_i\) into \(f(q)\).  In data-storytelling, each \(f(q_i)\) can be thought of as a real-world measurement of interest, like revenue or number of customers, and therefore, each draw of \(f(q_i)\) represents an equally likely outcome of that measurement. </p>
+<p>where to estimate \(\mathbb{E}_{\pi(Q)}[f]\) one plugs in the \(N\) samples of \(q_i\) into \(f(q)\).  In data-storytelling, each \(f(q_i)\) can be thought of as a real-world measurement of interest, like revenue or number of customers, and therefore, each draw of \(f(q_i)\) represents an equally likely outcome of that measurement; albeit with more draws concentrating around \(f\) values of higher probability. </p>
 <p>The most-notable class of algorithms that support getting samples from \(g(q)\)  which are indistinguishable from samples from \(\pi(q)\) directly are called Markov Chain Monte Carlo &#40;MCMC&#41; algorithms and they have a neat history stemming from their role simulating atomic bomb reactions for the Manhattan project.  The first appearance of the technique in academia is now referred to as the Metropolis algorithm <span class="bibref">(<a href="#metrop53">Metropolis et al. (1953)</a>)</span> with more general application lucidly explained in <span class="bibref"><a href="#hastings1970">Hastings, W. K. (1970)</a></span>.</p>
-<p>Surprisingly, the algorithms that approximate drawing independent samples from \(\pi(q)\) actually construct correlated or dependent samples of \(q\).   The samples are drawn sequentially where each subsequent point \(q_{i+1}\) is drawn using a special stochastic &#40;probabilistic&#41; function of the preceding point \(q\).  Let&#39;s call this special function the <em>transition function</em>, notated by \(\mathbb{T}\), and the sequence of points is a type of <em>Markov chain</em>.   &#40;More generally, Markov chains are sequence of points where the next state is a probablistic function of the current state- <a href="https://en.wikipedia.org/wiki/Markov_chain">see here</a>.&#41;</p>
-<p>The algorithms yield samples of \(\pi(q)\) as long as one uses a properly constructed transition function \(\mathbb{T}(q)\) and has access to a function proportional to the desired density, let&#39;s still call this \(g(q)\) even though it can represent an unnormalized version of the normalized \(g(q)\) referred to in &#40;?4?&#41;; both are used for generating sampling distributions.  The prototypical example example of \(g(q)\) is an unnormalized Bayesian posterior distribution.  </p>
-<p>A properly constructed transition function \(\mathbb{T}(q)\) is most easily created &#40;there are other ways&#41; by satisfying two conditions:</p>
+<p>Surprisingly, the algorithms that approximate drawing independent samples from \(\pi(q)\) actually construct correlated or dependent samples of \(q\).   The samples are drawn sequentially where each subsequent point \(q_{i+1}\) is drawn using a special stochastic &#40;probabilistic&#41; function of the preceding point \(q_i\).  Let&#39;s call this special function the <em>transition function</em>, notated by \(\mathbb{T}\), and the sequence of points is a type of <em>Markov chain</em>.   &#40;More generally, Markov chains are sequences of points where the next state is specified as a probablistic function of solely the current state- <a href="https://en.wikipedia.org/wiki/Markov_chain">see here</a>.&#41;</p>
+<p>The algorithms yield samples as if they were drawn from \(\pi(q)\) as long as one uses a properly constructed transition function \(\mathbb{T}(q)\) and has access to a function proportional to the desired density, let&#39;s still call this \(g(q)\) even though it represents an unnormalized version of the normalized \(g(q)\) referred to in &#40;?4?&#41;; both are used for generating sampling distributions.  The prototypical example of \(g(q)\) is an unnormalized Bayesian posterior distribution where \(\pi(q)\) is the normalized distribution of interest.  </p>
+<p>A properly constructed transition function \(\mathbb{T}(q)\) is most easily created by satisfying two conditions &#40;note: there are other ways to do this outside of our scope&#41; :</p>
 <ul>
-<li><p><strong>Detailed Balance</strong>:  The probability of being at any one point point in sample space and transitioning to a different point in sample sapce\(g(q_{i}) \, \mathbb{T}(q_{i+1}|q_i) = g(q_{i+1}) \, \mathbb{T}(q_{i}|q_{i+1})\)</p>
+<li><p><strong>Detailed Balance</strong>:  The probability of being at any one point \(q_i\) in sample space and transitioning to a different point \(q_{i+1}\) in sample space must equal the probability density of the reverse transition where starting from \(q_{i+1}\) one transitions to \(q_i\).  Mathematically, \(\, \, \, \, g(q_{i}) \, \mathbb{T}(q_{i+1}|q_i) = g(q_{i+1}) \, \mathbb{T}(q_{i}|q_{i+1})\).</p>
 </li>
 <li><p><strong>Ergodicity</strong>:  Each sample \(q\) in the chain is <em>aperiodic</em> - the chain does not repeat the same \(q\) at fixed intervals; and each possible sample \(q\) is <em>positive recurrent</em> - given enough samples, there is non-zero probability density of any other \(q\) being part of the chain. </p>
 </li>
 </ul>
-<p>The easiest way to </p>
-<h3 id="equation_of_state_calculations"><a href="#equation_of_state_calculations" class="header-anchor">Equation of State Calculations</a></h3>
-<p>Imagine \(N\) particles in a square.</p>
+<p><span class="bibref"><a href="#hastings1970">Hastings, W. K. (1970)</a></span> then tells us to separate the transition density \(\mathbb{T}\) into two densities, a proposal density \(\mathbb{Q}\) and an acceptance density \(a(q'|q)\), to make it easy to satisfy the detailed balance requirement.  Assuming a symmetric proposal density \(\mathbb{Q(q' \vert q)} = \mathbb{Q(q \vert q')}\), the following algorithm, known as <em>random walk Metropolis</em>, ensures the Markov chain is constructed to satisfy the requirement of <em>detailed balance</em>:</p>
+<ol>
+<li><p>Pick any starting point \(q_1\) from within sample space \(Q\).</p>
+</li>
+<li><p>Propose a point \(q'\) to jump to next using a proposal distribution \(\mathbb{Q}(q'|q)\).   This is commonly a multivariate normal distribution: \(\mathbb{Q}(q'|q) = \textrm{Normal}(q' | q,\Sigma)\). </p>
+</li>
+<li><p>Calculate the acceptance probability of the proposed jump using the Metropolis acceptance criteria, \(a(q'|q) = \min(1,\frac{\mathbb{Q}(q|q) \, g(q')}{\mathbb{Q}(q' | q) \, g(q)})\), where if the proposal distribution is symmetric, simplifies to \(a(q'|q)= \min(1,\frac{g(q')}{g(q)})\).  In words, if the proposed \(q'\) is a likelier state to be in, then go to it; otherwise, accept the proposed jump based on the ratio between the proposed point&#39;s density and the current point&#39;s density. </p>
+</li>
+<li><p>Set \(q_{i+1}\) to \(q'\) with probability \(a(q'|q_i)\) or to \(q_i\) with probability \(1 - a(q'|q_i)\).</p>
+</li>
+<li><p>Repeat steps 2-4 until convergence &#40;to be discussed later&#41;.  </p>
+</li>
+</ol>
+<h3 id="demonstrating_the_metropolis_sampler"><a href="#demonstrating_the_metropolis_sampler" class="header-anchor">Demonstrating the Metropolis Sampler</a></h3>
+<p>Recall our spinner example from the last chapter where want to sample a joint distribution of a winnings multiplier \(X\) and max win amount \(Y\) using their marginal density functions \(\pi\):</p>
+\[\begin{aligned}
+\pi_X(x) &= 6x \times (1-x) \\
+\pi_Y(y) &= 2 \times 8 \times \frac{y}{10^5} \times \left(1 - (\frac{y}{10^5})^2\right)^7 \times \frac{1}{10^5}
+\end{aligned}\]
+<p>where we are assuming we do not have a good way to sample from these two densities.  Let \(q = (x,y)\) and we can then follow random walk metropolis using code.</p>
+<h3 id="step_1_the_starting_point"><a href="#step_1_the_starting_point" class="header-anchor">Step 1: The Starting Point</a></h3>
+<pre><code class="language-julia">using Distributions, LinearAlgebra, DataFrames, Gadfly, Format, Luxor, Random
+
+# initial point - pick extreme point for illustration
+
+qDF &#61; DataFrame&#40;winningsMultiplier &#61; 0.99,
+                maxWinnings &#61; 99000.0&#41;  # use decimal to make Float64 column, not Int</code></pre>
+<pre><code class="plaintext">1×2 DataFrame
+ Row │ winningsMultiplier  maxWinnings
+     │ Float64             Float64
+─────┼─────────────────────────────────
+   1 │               0.99      99000.0</code></pre>
+<h3 id="step_2_propose_a_point_to_jump_to"><a href="#step_2_propose_a_point_to_jump_to" class="header-anchor">Step 2: Propose a point to jump to</a></h3>
+<pre><code class="language-julia"># jump Distribution  -- 
+# syntax:  MVNormal&#40;meanArray,covarianceMatrix&#41;
+jumpDist &#61; MvNormal&#40;zeros&#40;2&#41;, Diagonal&#40;&#91;0.1^2,200^2&#93;&#41; &#41; 
+# jumpDist is equivalent to xJump~N&#40;0,0.1&#41;, yJump~N&#40;0,200&#41;
+
+# function that takes current point
+# and outputs a proposed point to jump to
+function jumpPoint&#40;q::Array&#123;&lt;:Real&#125;&#41;
+    q_proposed &#61; q &#43; rand&#40;jumpDist,1&#41;
+end
+
+Random.seed&#33;&#40;54321&#41; # so you and I can get same #&#39;s
+q_current &#61; convert&#40;Array,qDF&#91;1, :&#93;&#41;
+q_proposed &#61; jumpPoint&#40;q_current&#41;</code></pre>
+<pre><code class="plaintext">2×1 Array{Float64,2}:
+     0.981466346804918
+ 98777.76317517625</code></pre>
+<h3 id="step_3_calculate_acceptance_probability"><a href="#step_3_calculate_acceptance_probability" class="header-anchor">Step 3: Calculate acceptance probability</a></h3>
+<pre><code class="language-julia">## density functions for calculations
+# density of x
+function π_X&#40;x::Real&#41; 
+    if x &gt;&#61; 0 &amp;&amp; x &lt;&#61;1
+        6*x*&#40;1-x&#41;
+    else
+        0
+    end
+end
+
+# density of y
+function π_Y&#40;y::Real&#41;  ## type \pi and press &lt;tab&gt; to get π symbol
+    kumaRealization &#61; y / 100000  ## substitute for simplicity
+    jacobian &#61; 1 / 10^5 # jacobian for change of variable
+    if kumaRealization &gt;&#61; 0 &amp;&amp; kumaRealization &lt;&#61;1
+        2*8*kumaRealization*&#40;1-kumaRealization^2&#41;^7*jacobian
+    else
+        0
+    end
+end
+
+# density of q when params passed in as array
+function π_Q&#40;q::Array&#123;&lt;:Real&#125;&#41;
+    π_X&#40;q&#91;1&#93;&#41; * π_Y&#40;q&#91;2&#93;&#41;
+end
+
+q &#61; convert&#40;Array,qDF&#91;nrow&#40;qDF&#41;, :&#93;&#41;
+acceptanceProb &#61; min&#40;1, π_Q&#40;q_proposed&#41; / π_Q&#40;q&#41;&#41;</code></pre>
+<pre><code class="plaintext">1.0</code></pre>
+<h3 id="step_4_add_point_to_chain"><a href="#step_4_add_point_to_chain" class="header-anchor">Step 4: Add point to chain</a></h3>
+<pre><code class="language-julia"># convention: use &#33; in function name when it modifies 1st argument
+function addPoint&#33;&#40;drawsDF::DataFrame, q_proposed::Array&#123;&lt;:Real&#125;, acceptanceProb::Real&#41;
+    if rand&#40;Bernoulli&#40;acceptanceProb&#41;&#41;
+        push&#33;&#40;drawsDF, q_proposed&#41; ## move to proposed point
+    else
+        q &#61; convert&#40;Array,drawsDF&#91;nrow&#40;drawsDF&#41;, :&#93;&#41;
+        push&#33;&#40;drawsDF,q&#41;  ## stay at same point
+    end
+end
+
+addPoint&#33;&#40;qDF, q_proposed, acceptanceProb&#41;</code></pre>
+<pre><code class="plaintext">2×2 DataFrame
+ Row │ winningsMultiplier  maxWinnings
+     │ Float64             Float64
+─────┼─────────────────────────────────
+   1 │           0.99          99000.0
+   2 │           0.981466      98777.8</code></pre>
+<h3 id="unofficial_step_in_between_4_5_visualize_the_chain"><a href="#unofficial_step_in_between_4_5_visualize_the_chain" class="header-anchor">Unofficial Step &#40;in between 4 &amp; 5&#41;: Visualize the Chain</a></h3>
+<pre><code class="language-julia"># create function to plot qDF
+function plotFun&#40;drawsDF::DataFrame, lines &#61; true&#41;
+    chainPlot &#61; plot&#40;drawsDF, x &#61; :winningsMultiplier, y &#61; :maxWinnings,
+        Geom.point,
+        Guide.xrug, Guide.yrug,
+        Scale.y_continuous&#40;labels &#61; x -&gt; format&#40;x, commas &#61; true&#41;&#41;,
+        Coord.cartesian&#40;xmin &#61;0, xmax &#61; 1,
+                        ymin &#61; 0, ymax &#61; 10^5&#41;,
+        Theme&#40;alphas &#61; &#91;0.5&#93;,
+                major_label_font_size &#61; 18pt,
+                minor_label_font_size &#61; 16pt&#41;&#41;
+    if lines
+        push&#33;&#40;chainPlot, layer&#40;drawsDF, x &#61; :winningsMultiplier, y &#61; :maxWinnings, Geom.line&#41; &#41;
+    end
+    return&#40;chainPlot&#41;
+end
+
+plotFun&#40;qDF&#41;</code></pre>
+
+<img src="/assets/mcmc/code\output\chainVizOut.svg" alt="">
+<p>Now, those two points in the upper-right hand corner hardly look representative of joint distibution \(Q\).  Both extreme values for \(X\) and \(Y\) are highly unlikely.  So while, the mathematics tells us that our sample using this Markov chain will converge to be identical to \(\pi_Q(q)\), just using two points is clearly not enough. To reenforce this, let&#39;s make a more complicated visual showing the marginal density functions for \(X\) and \(Y\).</p>
+<pre><code class="language-julia">## marginal density functions
+xHist &#61; plot&#40;π_X, 0, 1,
+    Theme&#40;line_width &#61; 2Gadfly.mm&#41;,
+    Guide.xticks&#40;ticks&#61;nothing&#41;, Guide.yticks&#40;ticks&#61;nothing&#41;,
+    Guide.xlabel&#40;nothing&#41;, Guide.ylabel&#40;nothing&#41;&#41;
+# save as SVG for inclusion in Luxor drawing
+draw&#40;SVG&#40;&quot;xHist.svg&quot;, 6Gadfly.inch, 2Gadfly.inch&#41;,xHist&#41;
+
+yHist &#61; plot&#40;π_Y, 0, 100000, 
+    Theme&#40;line_width &#61; 2Gadfly.mm&#41;,
+    Guide.xticks&#40;ticks&#61;nothing&#41;, Guide.yticks&#40;ticks&#61;nothing&#41;,
+    Guide.xlabel&#40;nothing&#41;, Guide.ylabel&#40;nothing&#41;,
+    Scale.x_continuous&#40;labels &#61; x -&gt; format&#40;x, commas &#61; true&#41;&#41;,
+    Coord.Cartesian&#40;xflip&#61;true&#41;&#41;
+# save as SVG for inclusion in Luxor drawing
+draw&#40;SVG&#40;&quot;yHist.svg&quot;, 6Gadfly.inch, 2Gadfly.inch&#41;,yHist&#41;</code></pre>
+<p>We will use the <code>Luxor</code> package to bring in those images and position them on the margins of our Markov chain visualization.  I will make this a function so that as the chain accumulates more points, we can easily update the visualization.</p>
+<pre><code class="language-julia">function addMarginPlots&#40;chainPlot::Plot&#41;
+    draw&#40;SVG&#40;&quot;chainPlot.svg&quot;, 7Gadfly.inch, 5Gadfly.inch&#41;,chainPlot&#41;
+    translate&#40;-330,-165&#41;  # determined by trial and error
+    xHistImg &#61; readsvg&#40;&quot;xHist.svg&quot;&#41;
+    yHistImg &#61; readsvg&#40;&quot;yHist.svg&quot;&#41;
+    chainImg &#61; readsvg&#40;&quot;chainPlot.svg&quot;&#41;
+    placeimage&#40;chainImg&#41;
+    translate&#40;95,-80&#41; # determined by trial and error
+    Luxor.scale&#40;0.93,0.74&#41; # determined by trial and error
+    placeimage&#40;xHistImg&#41;
+    translate&#40;545,115&#41;
+    rotate&#40;π/2&#41;
+    Luxor.scale&#40;0.9&#41; # determined by trial and error
+    placeimage&#40;yHistImg&#41;
+end</code></pre>
+<p>And we test it to make sure it works.  Note that this is an example of why we learned Luxor functions.  When our visuals are restricted by limited functionality of a package, e.g. <code>Gadfly.jl</code>, we can just make our own. </p>
+<pre><code class="language-julia">@svg begin
+    addMarginPlots&#40;plotFun&#40;qDF&#41;&#41;
+end</code></pre>
+
+<img src="/margHistPlot.svg" alt="">
+<h3 id="repeat_steps_2_-_4_until_convergence"><a href="#repeat_steps_2_-_4_until_convergence" class="header-anchor">Repeat Steps 2 - 4 Until Convergence</a></h3>
+<p>Now, we add a function to sample more points in our chain and then gather 200 more points.</p>
+<pre><code class="language-julia">function qDFSamplingFun&#33;&#40;drawsDF::DataFrame&#41;
+    currentRow &#61; nrow&#40;drawsDF&#41;  ## get last row as current pos.
+    q_current &#61; convert&#40;Array,drawsDF&#91;currentRow, :&#93;&#41;
+    q_proposed &#61; jumpPoint&#40;q_current&#41;
+    acceptanceProb &#61; min&#40;1, π_Q&#40;q_proposed&#41; / π_Q&#40;q_current&#41;&#41;
+    addPoint&#33;&#40;drawsDF, q_proposed, acceptanceProb&#41;
+end
+
+for i in 1:200
+    qDFSamplingFun&#33;&#40;qDF&#41;
+end</code></pre>
+<pre><code class="plaintext">202×2 DataFrame
+ Row │ winningsMultiplier  maxWinnings
+     │ Float64             Float64
+─────┼─────────────────────────────────
+   1 │           0.99          99000.0
+   2 │           0.981466      98777.8
+   3 │           0.981466      98777.8
+   4 │           0.981466      98777.8
+   5 │           0.935292      98697.1
+   6 │           0.935292      98697.1
+   7 │           0.958236      98373.3
+   8 │           0.850042      98589.7
+  ⋮  │         ⋮                ⋮
+ 196 │           0.407694      92439.7
+ 197 │           0.430753      91992.6
+ 198 │           0.474466      91881.7
+ 199 │           0.316536      91501.3
+ 200 │           0.482666      91639.2
+ 201 │           0.477057      91900.4
+ 202 │           0.484342      91777.7
+                       187 rows omitted</code></pre>
+<pre><code class="language-julia">@svg begin
+    addMarginPlots&#40;plotFun&#40;qDF&#41;&#41;
+end 700 500 &quot;margHistPlot2.svg&quot;</code></pre>
+
+<img src="/margHistPlot2.svg" alt="">
+<p>This is a fascinating plot.  I will save it as <code>qFirstTryDF</code> for later use.</p>
+<pre><code class="language-julia">qFirstTryDF &#61; qDF</code></pre>
+<p>After 200 jumps around parameter space, we still have not explored the sweetspot of winnings multipliers around 50&#37; and maximum winnings around &#36;25,000.  The sample is stuck in the very flat part of the marginal density for maximum winnings \(Y\).</p>
+<p>So far this correlated sample with its fancy Markov chain name seems like junk.  What strategies can be employed so that our sample looks more like a representative sample from these two distributions?</p>
+<h2 id="strategies_to_get_representative_samples"><a href="#strategies_to_get_representative_samples" class="header-anchor">Strategies to Get Representative Samples</a></h2>
+<h3 id="more_samples_with_bigger_jumps"><a href="#more_samples_with_bigger_jumps" class="header-anchor">More samples with bigger jumps</a></h3>
+<p>Part of the reason we are not finding the sweetspot of probability - often called the <em>typical set</em> - is that our exploration of \(Y\) is limited by tiny jumps.  So let&#39;s now start fresh from the same starting point, increase our jump size for maximum winnings, and take more samples.</p>
+<pre><code class="language-julia">## start with new draws df and sample 41 addtl points
+qBigJumpDF &#61; DataFrame&#40;winningsMultiplier &#61; 0.99,
+                maxWinnings &#61; 99000.0&#41;
+
+# change max winnings std. dev to 5,000 from 200
+jumpDist &#61; MvNormal&#40;zeros&#40;2&#41;, Diagonal&#40;&#91;0.1^2,5000^2&#93;&#41; &#41; 
+# jumpDist is equivalent to xJump~N&#40;0,0.1&#41;, yJump~N&#40;0,5000&#41;
+
+for i in 1:4000
+    qDFSamplingFun&#33;&#40;qBigJumpDF&#41;
+end</code></pre>
+<pre><code class="plaintext">4001×2 DataFrame
+  Row │ winningsMultiplier  maxWinnings
+      │ Float64             Float64
+──────┼─────────────────────────────────
+    1 │           0.99          99000.0
+    2 │           0.99          99000.0
+    3 │           0.99          99000.0
+    4 │           0.99          99000.0
+    5 │           0.99          99000.0
+    6 │           0.99          99000.0
+    7 │           0.882821      91352.7
+    8 │           0.882821      91352.7
+  ⋮   │         ⋮                ⋮
+ 3995 │           0.323323      17385.5
+ 3996 │           0.520027      21666.6
+ 3997 │           0.689487      23433.8
+ 3998 │           0.542163      12513.3
+ 3999 │           0.35659       18082.4
+ 4000 │           0.178764      21674.7
+ 4001 │           0.178764      21674.7
+                       3986 rows omitted</code></pre>
+<pre><code class="language-julia">@svg begin
+    addMarginPlots&#40;plotFun&#40;qBigJumpDF&#41;&#41;
+end 700 500 &quot;margHistPlot3.svg&quot;</code></pre>
+
+<img src="/margHistPlot3.svg" alt="">
+<p>After 4,000 bigger jumps around, our sampler has unstuck itself from the low-probability density region of sample space.  </p>
+<h3 id="get_rid_of_the_burn-in_period"><a href="#get_rid_of_the_burn-in_period" class="header-anchor">Get rid of the burn-in period</a></h3>
+<p>One intuition you might have is that the starting point of your sampling should not bias your results.  Think of the Markov chain as following a blood hound that visits points in proportion to their joint density magnitude.  If you start the blood hound&#39;s search in a region of very low density, then a disproportionate amount of time is spent sniffing points there.  To eliminate this bias, a burn-in period &#40;say first 1,000 samples&#41; is discarded and only the remaining samples are used.  You can see below that most maximum winnings samples above &#36;50,000 get removed; we started above &#36;50,000 and that is why there is an unrepresentatively high amount of samples from that area.</p>
+<pre><code class="language-julia">qNoBurnDF &#61; qBigJumpDF&#91;1001:end, :&#93;</code></pre>
+<pre><code class="plaintext">3001×2 DataFrame
+  Row │ winningsMultiplier  maxWinnings
+      │ Float64             Float64
+──────┼─────────────────────────────────
+    1 │           0.665722      48352.7
+    2 │           0.665722      48352.7
+    3 │           0.708042      46966.9
+    4 │           0.657651      42850.8
+    5 │           0.537396      38426.7
+    6 │           0.566104      36911.7
+    7 │           0.562456      45058.9
+    8 │           0.526936      41212.6
+  ⋮   │         ⋮                ⋮
+ 2995 │           0.323323      17385.5
+ 2996 │           0.520027      21666.6
+ 2997 │           0.689487      23433.8
+ 2998 │           0.542163      12513.3
+ 2999 │           0.35659       18082.4
+ 3000 │           0.178764      21674.7
+ 3001 │           0.178764      21674.7
+                       2986 rows omitted</code></pre>
+<pre><code class="language-julia">@svg begin
+    addMarginPlots&#40;plotFun&#40;qNoBurnDF&#41;&#41;
+end 700 500 &quot;margHistPlot4.svg&quot;</code></pre>
+
+<img src="/margHistPlot4.svg" alt="">
+<h3 id="thinning"><a href="#thinning" class="header-anchor">Thinning</a></h3>
+<p>One last strategy to employ is called thinning.  The points are correlated by design, but if we only peek at the chain every \(N^{th}\) point, then the correlation is less detectable and samples behave more independently.  Here we look at every third point.</p>
+<pre><code class="language-julia">qThinDF &#61; qNoBurnDF&#91;1001:3:end, :&#93;</code></pre>
+<pre><code class="plaintext">667×2 DataFrame
+ Row │ winningsMultiplier  maxWinnings
+     │ Float64             Float64
+─────┼─────────────────────────────────
+   1 │           0.458515     41730.5
+   2 │           0.390475     40571.4
+   3 │           0.36203      46586.8
+   4 │           0.166007     39980.5
+   5 │           0.134606     41365.6
+   6 │           0.26761      43988.2
+   7 │           0.419739     33814.9
+   8 │           0.584573     12297.2
+  ⋮  │         ⋮                ⋮
+ 661 │           0.170645      5414.74
+ 662 │           0.527311     25764.2
+ 663 │           0.298925     26574.1
+ 664 │           0.326721     18980.4
+ 665 │           0.426879     25226.4
+ 666 │           0.520027     21666.6
+ 667 │           0.35659      18082.4
+                       652 rows omitted</code></pre>
+<pre><code class="language-julia">@svg begin
+    addMarginPlots&#40;plotFun&#40;qThinDF&#41;&#41;
+end 700 500 &quot;margHistPlot5.svg&quot;</code></pre>
+
+<img src="/margHistPlot5.svg" alt="">
+<h2 id="simple_diagnostic_checks"><a href="#simple_diagnostic_checks" class="header-anchor">Simple Diagnostic Checks</a></h2>
+<h3 id="trace_plot"><a href="#trace_plot" class="header-anchor">Trace Plot</a></h3>
+<p>Recall that our goal was to estimate expected winnings.   From the previous chapter, we have narrowed down expected winnings to be just under &#36;15,000.  Checking this on our thinned data frame sample, we find.</p>
+<pre><code class="language-julia">qThinDF.winnings &#61; qThinDF.winningsMultiplier .* qThinDF.maxWinnings
+mean&#40;qThinDF.winnings&#41;</code></pre>
+<pre><code class="plaintext">12916.329207850704</code></pre>
+<p>Not quite the accuracy we were hoping for, but then again we only retained 667 samples.  Let&#39;s use alot more samples, say 20,000, remove the first 2,000 as burn-in, and then retain every third sample; a total of 6,000 samples</p>
+<pre><code class="language-julia">## better starting point
+qDF &#61; DataFrame&#40;winningsMultiplier &#61; 0.5,
+                maxWinnings &#61; 25000.0&#41;
+
+for i in 1:20000
+    qDFSamplingFun&#33;&#40;qDF&#41;
+end
+
+qDF &#61; qDF&#91;2001:end,:&#93; ## get rid of burn-in
+qDF &#61; qDF&#91;1:3:end,:&#93;  ## retain every third sample</code></pre>
+<pre><code class="plaintext">6001×2 DataFrame
+  Row │ winningsMultiplier  maxWinnings
+      │ Float64             Float64
+──────┼──────────────────────────────────
+    1 │           0.55789       20121.0
+    2 │           0.350313      25361.0
+    3 │           0.368025      20110.5
+    4 │           0.534217      20272.8
+    5 │           0.541099      27406.4
+    6 │           0.448786      31303.4
+    7 │           0.598569      34623.1
+    8 │           0.645882      35908.4
+  ⋮   │         ⋮                ⋮
+ 5995 │           0.76571       25613.4
+ 5996 │           0.687493      31163.8
+ 5997 │           0.743776      40702.5
+ 5998 │           0.616735      47447.2
+ 5999 │           0.746507      41558.5
+ 6000 │           0.884031      49342.9
+ 6001 │           0.757329      54914.0
+                        5986 rows omitted</code></pre>
+<p>And recalculating expected winnings, we get</p>
+<pre><code class="language-julia">qDF.winnings &#61; qDF.winningsMultiplier .* qDF.maxWinnings
+mean&#40;qDF.winnings&#41;</code></pre>
+<pre><code class="plaintext">14875.910781711029</code></pre>
+<p>which is a much more accurate approximation.  It is good to know this works&#33;</p>
+<p>One of the best ways to check that your exploring parameter space properly is to use trace plots.</p>
+<p>Here is a trace plot of the parameters as well as our expected function.</p>
+<pre><code class="language-julia">### trace plot
+qDF.drawNum &#61; 1:nrow&#40;qDF&#41;
+## get tidy Format
+traceDF &#61; stack&#40;qDF,1:3&#41;
+
+plot&#40;traceDF, x &#61; :drawNum, y &#61; :value,
+        ygroup &#61; :variable,
+        Geom.subplot_grid&#40;Geom.line, free_y_axis&#61;true&#41;&#41;</code></pre>
+
+<img src="/assets/mcmc/code\output\tracePlotOut.svg" alt="">
+<p>The above is exactly what you want to see; a graph that looks like a fuzzy caterpillar throughout all of the draws.  Sometimes samplers get stuck in a region and the trace plot will reveal odd behaviors like that.  For example, here is the trace plot of <code>qFirstTryDF</code>.</p>
+<pre><code class="language-julia">### trace plot
+qFirstTryDF.drawNum &#61; 1:nrow&#40;qFirstTryDF&#41;
+## get tidy Format
+traceDF &#61; stack&#40;qFirstTryDF,1:2&#41;
+
+plot&#40;traceDF, x &#61; :drawNum, y &#61; :value,
+        ygroup &#61; :variable,
+        Geom.subplot_grid&#40;Geom.line, free_y_axis&#61;true&#41;&#41;</code></pre>
+
+<img src="/assets/mcmc/code\output\tracePlot2Out.svg" alt="">
+<p>The plot shows a lack of exploration of parameter space.  The bloodhound is following probability density towards the probability sweetspot, but we can tell from the plot that parameter space exploration is insufficient at this point - there is no fuzzy caterpillar.</p>
+<h2 id="hmc"><a href="#hmc" class="header-anchor">HMC</a></h2>
+<p>Next chapter, we will learn about Hamiltonian Monte Carlo &#40;HMC&#41;.  For continuous variables, it is the most efficient sampler we have. </p>
+<h2 id="great_article"><a href="#great_article" class="header-anchor">Great Article</a></h2>
+<p><a href="https://betanalpha.github.io/assets/case_studies/markov_chain_monte_carlo.html">Michael Betancourt&#39;s Markov Chain Monte Carlo in Practice</a></p>
 <h2 id="references"><a href="#references" class="header-anchor">References</a></h2>
 <ul>
 <li><p><a id="betancourt2018" class="anchor"></a> Betancourt, M. &#40;2017&#41;. <em>A conceptual introduction to Hamiltonian Monte Carlo.</em> arXiv preprint arXiv:1701.02434.</p>
@@ -86,13 +454,22 @@
 </li>
 </ul>
 <h2 id="exercises"><a href="#exercises" class="header-anchor">Exercises</a></h2>
-<p>Add the Kumaraswamy Distribution to Distributions.jl.  Compare to Beta Distribution.</p>
-<p>Create a plot of sampling efficiency for estimating the integrand in &#40;?7?&#41;.  Measure efficiency by calculating the range of estimates you get for various N and sampling methods. The horizontal axis of the plot should be # of sample and the vertical axis should be the range.  Use a different color point for each of the three methodologies.</p>
-<p>In proof A.20 of https://cs.dartmouth.edu/wjarosz/publications/dissertation/appendixA.pdf, explain what mathematical concept is being used to from one each of the proof to the subsequent line of the proof.</p>
-<p>Rewrite a paragraph or two of your choosing where you found the math or narrative to be confusing.  </p>
+<h3 id="exercise_1"><a href="#exercise_1" class="header-anchor">Exercise 1</a></h3>
+<p>Using the notation of this chapter &#40;e.g. \(g(\cdot),\mathbb{T}(\cdot)\), etc.&#41;, prove that the detailed balance requirement is satisfied using the proposal and acceptance densities of the algorithm above.  See this <a href="https://en.wikipedia.org/wiki/Metropolis&#37;E2&#37;80&#37;93Hastings_algorithm">Wikipedia article</a> for the proof using different notation that applies to a finite and discrete number of sample states.   Upload proof as a pdf file.  &#40;proof does not have to be extremely rigorous - this is more a lesson in transferring notation from one paper to another when notation rules are not standardized; a common task for a PhD.&#41;  I encourage you to write this up using <a href="https://rmd4sci.njtierney.com/math">RMarkdown with Latex equations</a>, but that is optional. </p>
+<h3 id="exercise_2"><a href="#exercise_2" class="header-anchor">Exercise 2</a></h3>
+<p>In this exercise, we will explore how the choice of proposal distribution affects sampling efficiency.  Specifically, create three different proposal distributions by adjusting the covariance matrix of the proposal distribution.  The three distributions should represent these three scenarios:</p>
+<ol>
+<li><p>The Teleporting Couch Potato Scenario:  The proposal distribution leads to roughly 5&#37; of all proposed jumps being accepted.</p>
+</li>
+<li><p>The Smart Explorer Scenario:  The proposal distribution leads to roughly 50&#37; of all proposed jumps being accepted.</p>
+</li>
+<li><p>The Turtle Scenario:  proposal distribution leads to roughly 95&#37; of all proposed jumps being accepted.</p>
+</li>
+</ol>
+<p>Using a 10,000 sample chain and discarding the first 2,000 samples as burn-in, create a trace plot for winnings &#40;i.e. winningsMultiplier * maxWinnings&#41; for each of the three scenarios above.  Use compositing of some kind in Gadfly.jl &#40;<a href="http://gadflyjl.org/stable/man/compositing/">see here for info on compositing</a>&#41; to put all plots on one page.  Upload your julia code as a <code>.jl</code> file and your plots as a <code>pdf</code> file &#40;see here for creating a pdf&#41;&#91;http://gadflyjl.org/stable/man/backends/&#93;.  Include the three scenario labels &#40;e.g. Teleporting Couch&#41; on the plots themselves.</p>
 <div class="page-foot">
   <div class="copyright">
-    &copy; Adam J. Fleischhacker. Last modified: April 15, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
+    &copy; Adam J. Fleischhacker. Last modified: April 22, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
   </div>
 </div>
 </div><!-- CONTENT ENDS HERE -->
