@@ -6,5 +6,10 @@ videos = Dict(
               "installation" => "Hs5abYdC7EQ",
               "feynman"  => "EYPapE-3FRw",
               "luxorSpinner" => "izvJWkQIwA0",
-              "pkgMgr" => "vux8AUt2x8A"
+              "pkgMgr" => "vux8AUt2x8A",
+              "integrals" => "rfG8ce4nNh0",
+              "distributions" => "7J_VFr2e_U8",
+              "hmcDummy" => "ZGtezhDaSpM",
+              "lambertHMC" => "a-wydhEuAm0",
+              "BetancourtHMC" => "9ykCU2-W_8Y"
 )
