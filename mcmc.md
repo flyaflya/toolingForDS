@@ -209,7 +209,7 @@ end
 
 And we test it to make sure it works.  Note that this is an example of why we learned Luxor functions.  When our visuals are restricted by limited functionality of a package, e.g. `Gadfly.jl`, we can just make our own. 
 
-```julia:margPlot1
+```julia
 @svg begin
     addMarginPlots(plotFun(qDF))
 end

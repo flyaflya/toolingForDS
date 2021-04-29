@@ -388,6 +388,12 @@ where the first simplification step is due to drawing independent samples of $q$
 
 The math reveals insight to reduce our estimator variance.  Either we increase $N$, or we strive to choose a $g(q)$ that makes $\frac{\pi(q)\, f(q)}{g(q)}$ as close to uniform as possible so that $\sigma^2\left[\frac{\pi(q)\, f(q)}{g(q)}\right] \rightarrow 0$.  Each of those approaches has a downside.  Increasing $N$ leads to increased sampling time which can get prohibitively long for complex problems. Choosing $g(Q)$ so that $\frac{\pi(q)\, f(q)}{g(q)}$ is uniform is also an issue because $\pi(q)$ is usually some intractable function and making $g(q) \propto \pi(q) \times f(q)$ is even harder.  What to do?  (HINT: see the next chapter 😊)  
 
+## Distributions
+
+There is a package in Julia called `Distributions.jl` which is the core repository for all probability distribution information.  If you want to sample efficiently from a probability distribution, that probability distribution should be defined using the API framework introduced through this package.  While the package has most common probability distributions, here is a video showing how to add a new distribution if needed.
+
+{{youtube distributions}}
+
 ## References
 
 * \biblabel{betancourt2018}{Betancourt (2018)} Betancourt, M. (2017). *A conceptual introduction to Hamiltonian Monte Carlo.* arXiv preprint arXiv:1701.02434.
