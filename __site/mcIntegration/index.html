@@ -41,6 +41,7 @@
       <!-- <a class="sidebar-nav-item {{ispage jointDist/*}}active{{end}}" href="/jointDist/">Joint Distributions</a> -->
       <a class="sidebar-nav-item active" href="/mcIntegration/">Monte Carlo Integration</a>
       <a class="sidebar-nav-item " href="/mcmc/">Markov Chain Monte Carlo</a>
+      <a class="sidebar-nav-item " href="/hmc/">Hamiltonian Monte Carlo</a>
     </nav>
     <p>&copy; Adam J. Fleischhacker.</p>
   </div>
@@ -121,7 +122,7 @@ q = (x,y)
 <h3 id="monte_carlo_integration"><a href="#monte_carlo_integration" class="header-anchor">Monte Carlo Integration</a></h3>
 <p>One easier way to do integrals is to use Monte Carlo integration.  Recall from calculus &#40;or watch the below video&#41; that an integral, like &#40;6&#41; can be approximated as a summation of small slices of the function being integrated.</p>
 <iframe id="integrals" width="100%" height="360"
-src="https://www.youtube.com/embed/integrals"
+src="https://www.youtube.com/embed/rfG8ce4nNh0"
 frameborder="0"
 allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
 allowfullscreen></iframe>
@@ -167,30 +168,30 @@ plot&#40;gridDF,
 <p>In code, our estimate of expected winnings turns out to be:</p>
 <pre><code class="language-julia">using Statistics
 expectedWinnings &#61; 10^5 * mean&#40;gridDF.integrand&#41; # est of I</code></pre>
-<pre><code class="plaintext">14481.801264042351</code></pre>
+<pre><code class="plaintext">15207.706592765855</code></pre>
 <p>Your calculation for expected winnings may be different than mine &#40;i.e. due to inherent randomness in Monte Carlo integration&#41;.  However, asymptotically if we were to increase \(N\), then our numbers would converge; eventually or at least after infinite samples🤷 &#40;see <a href="https://en.wikipedia.org/wiki/Monte_Carlo_integration">the Wikipedia article on Monte Carlo integration</a>&#41;.  Here is how to see some of my randomly generated summand values - observe that highest maximum winnings does not mean largest contribution to the integrand due to the improbability of those events occurring.</p>
 <pre><code class="language-julia">gridDF</code></pre>
 <pre><code class="plaintext">1000×3 DataFrame
-  Row │ winningsMultiplier  maxWinnings  integrand
-      │ Float64             Float64      Float64
-──────┼──────────────────────────────────────────────
-    1 │          0.471674      21737.9   0.379956
-    2 │          0.800419       9607.23  0.106177
-    3 │          0.994983      26439.1   0.0200709
-    4 │          0.965775      40763.2   0.142716
-    5 │          0.0731568     31495.6   0.022735
-    6 │          0.112069      12452.3   0.0148805
-    7 │          0.457195       7789.63  0.0633357
-    8 │          0.012494      10894.6   0.000161561
-  ⋮   │         ⋮                ⋮            ⋮
-  994 │          0.387106       2538.8   0.00565737
-  995 │          0.765137      23296.2   0.48473
-  996 │          0.630194      65034.1   0.127059
-  997 │          0.426615      13349.5   0.157417
-  998 │          0.560795      37234.3   0.646739
-  999 │          0.673823      27797.1   0.625669
- 1000 │          0.454736      64170.3   0.1086
-                                     985 rows omitted</code></pre>
+  Row │ winningsMultiplier   maxWinnings  integrand
+      │ Float64              Float64      Float64
+──────┼───────────────────────────────────────────────
+    1 │           0.90322        72134.6  0.0230392
+    2 │           0.917368       51545.2  0.20419
+    3 │           0.512024       16427.0  0.273655
+    4 │           0.9973         15250.5  0.0050851
+    5 │           0.277693       28754.6  0.241643
+    6 │           0.545174       18977.3  0.361536
+    7 │           0.80005        61191.1  0.172469
+    8 │           0.984964       93986.3  3.63715e-7
+  ⋮   │          ⋮                ⋮            ⋮
+  994 │           0.558091       71935.2  0.0416468
+  995 │           0.353317       59131.9  0.13333
+  996 │           0.832761       13626.2  0.18131
+  997 │           0.451363       88096.8  0.000234874
+  998 │           0.582402       21358.5  0.447375
+  999 │           0.585395       69332.4  0.0667747
+ 1000 │           0.995958       44345.1  0.0163444
+                                      985 rows omitted</code></pre>
 <h3 id="more_efficient_monte_carlo_integration"><a href="#more_efficient_monte_carlo_integration" class="header-anchor">More Efficient Monte Carlo Integration</a></h3>
 <p>If the highest summands/integrands sway our expected estimates much more dramatically than all of the close-to-zero summands, then our estimation error could be reduced more efficiently if our estimation method spends more time sampling from high summand values and less time sampling at near-zero summands.  One way to accomplish this is to use a non-uniform sampling of points known as <em>importance sampling</em>; sample the far-from-zero summands more frequently and the close-to-zero summands less frequently.  In doing this, each point can no longer be weighted equally, but rather our estimate gets adjusted by the probability density function of drawing the non-uniform sample &#40;<a href="https://cs.dartmouth.edu/wjarosz/publications/dissertation/appendixA.pdf">see Jarosz &#40;2008&#41; for general formula</a> &#41;.  Labelling the sampling probability density function \(g_{X,Y}(x,y)\) gives:</p>
 \[
@@ -295,6 +296,14 @@ end</code></pre>
 \end{aligned}\]
 <p>where the first simplification step is due to drawing independent samples of \(q\) so that the variance of a sum is the sum of the indiviudal variances; and the second step is possible because each and every one of the \(N\) draws, i.e. each \(q_i\), is identically distributed.  </p>
 <p>The math reveals insight to reduce our estimator variance.  Either we increase \(N\), or we strive to choose a \(g(q)\) that makes \(\frac{\pi(q)\, f(q)}{g(q)}\) as close to uniform as possible so that \(\sigma^2\left[\frac{\pi(q)\, f(q)}{g(q)}\right] \rightarrow 0\).  Each of those approaches has a downside.  Increasing \(N\) leads to increased sampling time which can get prohibitively long for complex problems. Choosing \(g(Q)\) so that \(\frac{\pi(q)\, f(q)}{g(q)}\) is uniform is also an issue because \(\pi(q)\) is usually some intractable function and making \(g(q) \propto \pi(q) \times f(q)\) is even harder.  What to do?  &#40;HINT: see the next chapter 😊&#41;  </p>
+<h2 id="distributions"><a href="#distributions" class="header-anchor">Distributions</a></h2>
+<p>There is a package in Julia called <code>Distributions.jl</code> which is the core repository for all probability distribution information.  If you want to sample efficiently from a probability distribution, that probability distribution should be defined using the API framework introduced through this package.  While the package has most common probability distributions, here is a video showing how to add a new distribution if needed.</p>
+<iframe id="distributions" width="100%" height="360"
+src="https://www.youtube.com/embed/7J_VFr2e_U8"
+frameborder="0"
+allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+allowfullscreen></iframe>
+
 <h2 id="references"><a href="#references" class="header-anchor">References</a></h2>
 <ul>
 <li><p><a id="betancourt2018" class="anchor"></a> Betancourt, M. &#40;2017&#41;. <em>A conceptual introduction to Hamiltonian Monte Carlo.</em> arXiv preprint arXiv:1701.02434.</p>
@@ -349,7 +358,7 @@ plot&#40;pdfLayer,dataLayer&#41;</code></pre>
 <p>In proofs A.20 and A.21 of https://cs.dartmouth.edu/wjarosz/publications/dissertation/appendixA.pdf, explain what mathematical concept is being used to go from each line of the proof to the subsequent line of the proof.  Upload a copy of the two proofs annotated with the mathematical concept being applied in each line as a PDF file.  Example mathematical concepts include &quot;law of total probability&quot; or &quot;sum of the variances equals variance of the sums for independent random variables&quot;.</p>
 <div class="page-foot">
   <div class="copyright">
-    &copy; Adam J. Fleischhacker. Last modified: April 16, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
+    &copy; Adam J. Fleischhacker. Last modified: April 27, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
   </div>
 </div>
 </div><!-- CONTENT ENDS HERE -->

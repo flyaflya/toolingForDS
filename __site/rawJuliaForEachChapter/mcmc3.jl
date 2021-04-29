@@ -55,6 +55,7 @@ function addPoint!(drawsDF::DataFrame, q_proposed::Array{<:Real}, acceptanceProb
     if rand(Bernoulli(acceptanceProb))
         push!(drawsDF, q_proposed) ## move to proposed point
     else
+        q = convert(Array,drawsDF[nrow(drawsDF), :])
         push!(drawsDF,q)  ## stay at same point
     end
 end
@@ -70,8 +71,17 @@ function qDFSamplingFun!(drawsDF::DataFrame)
     addPoint!(drawsDF, q_proposed, acceptanceProb)
 end
 
-for i in 1:10
+for i in 1:100
     qDFSamplingFun!(qDF)
 end
 
 qDF
+
+### trace plot
+qDF.drawNum = 1:nrow(qDF)
+## get tidy Format
+traceDF = stack(qDF,1:2)
+
+plot(traceDF, x = :drawNum, y = :value,
+        ygroup = :variable,
+        Geom.subplot_grid(Geom.line, free_y_axis=true))
